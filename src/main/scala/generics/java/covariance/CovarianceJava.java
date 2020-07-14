@@ -77,8 +77,8 @@ public class CovarianceJava {
 		return fruits.stream().collect(groupingBy(Fruit::color));
 	}
 
-	private static Map<String, List<Fruit>> groupAppleByColor(List<Apple> fruits) {
-		return fruits.stream().collect(groupingBy(Fruit::color));
+	private static Map<String, List<Apple>> groupAppleByColor(List<Apple> fruits) {
+		return fruits.stream().collect(groupingBy(Apple::color));
 	}
 
 	private static Map<String, List<Fruit>> groupFruitByColorCovariant(List<? extends Fruit> fruits) {
