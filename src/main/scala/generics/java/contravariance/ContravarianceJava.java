@@ -7,69 +7,49 @@ import java.util.function.Function;
 
 public class ContravarianceJava {
 
-	private static void providerOfAppleInvariant(Consumer<Apple> consumerOfApple) {
-		consumerOfApple.accept(new Apple("Red"));
+	private static void getEatableFruits(Consumer<Eatable> eatableConsumer) {
+		eatableConsumer.accept(new Apple("Red"));
 	}
 
-	private static void providerOfAppleContravariant(Consumer<? super Apple> consumerOfApple) {
-		consumerOfApple.accept(new Apple("Red"));
+	private static void getEatableFruitsCovariant(Consumer<? extends Eatable> eatableConsumer) {
+		Orange orange = new Orange();
+		// eatableConsumer.accept(orange); // will not compile
+
+		Apple apple = new Apple("Red");
+		// eatableConsumer.accept(apple); // will not compile
 	}
+
+	private static void getEatableFruitsContravariant(Consumer<? super Eatable> eatableConsumer) {
+		Orange orange = new Orange();
+		eatableConsumer.accept(orange);
+
+		Apple apple = new Apple("Red");
+		eatableConsumer.accept(apple);
+	}
+
 
 	public static void main(String... args) {
-		Fruit fruit;
+		Eatable eatable;
 		Apple apple = new Apple("Red");
-		fruit = apple; //works since apple is a subtype of fruit
-		// apple = fruit;
-
+		eatable = apple; //works since apple is a subtype of eatable
+		// apple = eatable;
 
 		// invariance for a Consumer
-		Consumer<Apple> consumerOfApple = (Apple a) -> System.out.println("I executed: " + a.removeAppleCores());
-		Consumer<Fruit> consumerOfFruit = (Fruit f) -> System.out.println("My color is: " + f.color());
+		Consumer<Eatable> eatableConsumer = (Eatable e) -> System.out.println("With this fruit I can produce: " + e.joice());
+		getEatableFruits(eatableConsumer);
 
-		consumerOfFruit.accept(apple);
-		consumerOfFruit.accept(fruit);
-		consumerOfApple.accept(apple);
-		//consumerOfApple.accept(fruit); // will not compile
+		// covariance?
+		Consumer<? extends Eatable> eatableConsumerCovariant;
+		Consumer<Apple> appleConsumer = (Apple a) -> System.out.println("With this fruit I can: " + a.removeAppleCore());
+		eatableConsumerCovariant = appleConsumer;
+		getEatableFruitsCovariant(eatableConsumerCovariant);
 
-		// providerOfAppleInvariant(consumerOfFruit); // will not compile
-		providerOfAppleInvariant(consumerOfApple);
+		// contravariant
+		Consumer<? super Eatable> eatableConsumerContravariant;
+		Consumer<Fruit> fruitConsumer = (Fruit f) -> System.out.println("The color of the fruit is: " + f.color());
+		eatableConsumerContravariant = fruitConsumer;
+		getEatableFruitsContravariant(eatableConsumerContravariant);
 
-		// consumerOfApple = consumerOfFruit; // will not compile
-		// consumerOfFruit = consumerOfApple; // will not compile
-
-
-		// contravariance for a Consumer
-		System.out.println("Contravariance");
-		Consumer<? super Apple> consumerOfAppleContravariant = (Apple a) -> System.out.println(a.joice());
-
-		// consumerOfFruit = consumerOfApple;
-		consumerOfAppleContravariant = consumerOfFruit; // works since consumerOfApple is a subtype of consumerOfGoldenDelicious
-
-		providerOfAppleContravariant(consumerOfFruit);
-
-
-		// ************************************************************************************
-
-		// invariant function
-
-		Function<Ackee, Optional<? extends Eatable>> ackeeDetoxifier = Ackee::detoxify;
-		Function<Toxic, Optional<? extends Eatable>> genericDetoxifier = t -> {
-			System.out.println("Generic detoxify");
-			return t.detoxify();
-		};
-
-		// ackeeDetoxifier = genericDetoxifier
-
-		// contravariant/covariant
-		Function<? super Ackee, ? extends Optional<? extends Eatable>> ackeeDetoxifier2 = Ackee::detoxify;
-		ackeeDetoxifier2 = genericDetoxifier;
-
-
-		new Ackee().detoxify(); // better example needed?
-
-		genericDetoxifier
-				.apply(new Ackee())
-				.ifPresent(e -> System.out.println("Got: " + e.joice()));
 
 	}
 
