@@ -84,5 +84,13 @@ public class ContravarianceJava {
 
 		Apple apple = new Apple("Red");
 		eatableConsumer.accept(apple);
+
+		Fruit fruit = new Fruit() {
+			@Override
+			public String color() {
+				return "Red";
+			}
+		};
+		// eatableConsumer.accept(fruit); // will not compile
 	}
 }
