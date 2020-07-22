@@ -3,20 +3,16 @@ package scalaz
 import scalaz._
 import Scalaz._
 
-import scala.reflect.ClassTag
-
-import scala.reflect.runtime.universe._
-import scala.language.reflectiveCalls
-import Validate._
+  import Validate._
 
 
 object KleisliUsage {
 
-
+  case class Person(name: String, age: Int, city: String, books: Set[String])
 
   def main(args: Array[String]): Unit = {
 
-    val books = List("hepp")
+    val books = Set("hepp")
 
     val tmp1 = getValue[Person, String](Person("Beata", 6, "Malmö", books), "name2")
     println(tmp1)
@@ -38,19 +34,19 @@ object KleisliUsage {
 
     val personValidator =
       maxLength[Person]("name", 21) >=>
-        minLength[Person]("name", 0) >=>
+        minLengthString[Person]("name", 0) >=>
         maxValue[Person]("age", 121) >=>
         minValue[Person]("age", 0) >=>
         maxLength[Person]("city", 21) >=>
-        minLength[Person]("city", 0)  //>=>
-        // minLength[Person, List[String]]("books", 1)
+        minLengthString[Person]("city", 0)  >=>
+        minLength[Person, Set[String]]("books", 0)
 
-    println("dsd".length)
-    println(books.length)
-    // println(personValidator.run(Person("NiklasNiklasNiklasNiklas", 46, "Malmö")))
-    // println(personValidator.run(Person("", 120, "Malmö")))
-    // println(personValidator.run(Person("Adam", 121, "Malmö")))
-    // println(personValidator.run(Person("Adam", 120, "Malmöööööööööööööööööööööööööööööö")))
+    println("dsd".size)
+    println(books.size)
+    println(personValidator.run(Person("NiklasNiklasNiklasNiklas", 46, "Malmö", books)))
+    println(personValidator.run(Person("", 120, "Malmö", books)))
+    println(personValidator.run(Person("Adam", 121, "Malmö", books)))
+    println(personValidator.run(Person("Adam", 120, "Malmöööööööööööööööööööööööööööööö", books)))
     println(personValidator.run(Person("Niklas", 47, "Malmö", books)))
   }
 

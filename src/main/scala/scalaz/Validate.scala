@@ -1,14 +1,11 @@
 package scalaz
 
 import scala.reflect.ClassTag
-import scala.reflect.ClassTag
 
 import scala.reflect.runtime.universe._
 
 object Validate {
   type Validator[T] = T => Either[String, T]
-
-  case class Person(name: String, age: Int, city: String, books: List[String])
 
   // https://stackoverflow.com/questions/6686992/scala-asinstanceof-with-parameterized-types
   def cast[A <: Any : Manifest](a: Any): A =
@@ -37,16 +34,8 @@ object Validate {
     }
   }
 
-  def validateField[T](field: String)(implicit m: Manifest[T]) = {
-    val fieldExists = manifest[T].runtimeClass.getMethods.exists(m => m.getName == field)
-    if (!fieldExists) throw new RuntimeException(s"Could not find a field called $field")
-  }
-
-  private def getType[T](field: String)(implicit m: Manifest[T]) = {
-    manifest[T].runtimeClass.getMethods.filter(m => m.getName == field).map(m => m.getAnnotatedReturnType).head
-  }
-
-  def minLength[T](field: String, min: Int)(implicit ctf: ClassTag[T], ttf: TypeTag[T], m: Manifest[T]): Validator[T] = {
+  // TODO For some reason minLength doesn't work with String, revisit this when you know more!
+  def minLengthString[T](field: String, min: Int)(implicit ctf: ClassTag[T], ttf: TypeTag[T], m: Manifest[T]): Validator[T] = {
     validateField(field)
     (t: T) => {
       for {
@@ -56,26 +45,37 @@ object Validate {
     }
   }
 
-  def maxValue[T](field: String, max: Int)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T]): Validator[T] = {
+  def minLength[T, FT <: Any {def size: Int}](field: String, min: Int)(implicit ctf: ClassTag[T], ttf: TypeTag[T], m: Manifest[T], ctft: ClassTag[FT], ttft: TypeTag[FT]): Validator[T] = {
     validateField(field)
     (t: T) => {
       for {
-        value <- getValue[T, Integer](t, field)
-        result <- if (value < max) Right(t) else Left(s"Value on $field was $value but it must be less then $max")
+        value <- getValue[T, FT](t, field)
+        result <- if (value.size > min) Right(t) else Left(s"Length on $field was ${value.size} but it most be greater then $min")
       } yield result
     }
   }
 
-  def minValue[T](field: String, min: Int)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T]): Validator[T] = {
-    validateField(field)
-    (t: T) => {
-      for {
-        value <- getValue[T, Integer](t, field)
-        result <- if (value > min) Right(t) else Left(s"Value on $field was $value but it must be greater then $min")
-      } yield result
-    }
-  }
+  def maxValue[T](field: String, max: Int)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T]): Validator[T] =
+    intValidation(field, max, v => v < max, v => s"Value on $field was $v but it must be less then $max")
+
+  def minValue[T](field: String, min: Int)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T]): Validator[T] =
+    intValidation(field, min, value => value > min, v => s"Value on $field was $v but it must be greater then $min")
 
   implicit def validatorToKleisli[T](v: Validator[T]) =
     Kleisli(v)
+
+  private def intValidation[T](field: String, max: Int, op: Int => Boolean, errorMessage: Int => String)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T]): Validator[T] = {
+    validateField(field)
+    (t: T) => {
+      for {
+        value <- getValue[T, Integer](t, field)
+        result <- if (op(value)) Right(t) else Left(errorMessage(value))
+      } yield result
+    }
+  }
+
+  private def validateField[T](field: String)(implicit m: Manifest[T]): Unit = {
+    val fieldExists = manifest[T].runtimeClass.getMethods.exists(m => m.getName == field)
+    if (!fieldExists) throw new RuntimeException(s"Could not find a field called $field")
+  }
 }
