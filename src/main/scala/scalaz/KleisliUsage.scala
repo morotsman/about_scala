@@ -3,7 +3,7 @@ package scalaz
 import scalaz._
 import Scalaz._
 
-  import Validate._
+import Validate._
 
 
 object KleisliUsage {
@@ -38,7 +38,7 @@ object KleisliUsage {
         maxValue[Person]("age", 121) >=>
         minValue[Person]("age", 0) >=>
         maxLength[Person]("city", 21) >=>
-        minLengthString[Person]("city", 0)  >=>
+        minLengthString[Person]("city", 0) >=>
         minLength[Person, Set[String]]("books", 0)
 
     println("dsd".size)

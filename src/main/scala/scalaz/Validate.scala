@@ -1,7 +1,6 @@
 package scalaz
 
 import scala.reflect.ClassTag
-
 import scala.reflect.runtime.universe._
 
 object Validate {
@@ -61,7 +60,7 @@ object Validate {
   def minValue[T](field: String, min: Int)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T]): Validator[T] =
     intValidation(field, min, value => value > min, v => s"Value on $field was $v but it must be greater then $min")
 
-  implicit def validatorToKleisli[T](v: Validator[T]) =
+  implicit def validatorToKleisli[T](v: Validator[T]): Kleisli[({type lambda[x] = Either[String, x]})#lambda, T, T] =
     Kleisli(v)
 
   private def intValidation[T](field: String, max: Int, op: Int => Boolean, errorMessage: Int => String)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T]): Validator[T] = {
