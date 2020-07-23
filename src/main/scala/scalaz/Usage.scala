@@ -33,7 +33,7 @@ object Usage {
       minValue("age", 0) >==>
       maxLength("city", 21) >==>
       minLengthString("city", 0) >==>
-      minLength[Set[String]]("books", 0)
+      minLength[Set[String]]("books",0)
 
   def main(args: Array[String]): Unit = {
     val books = Set("hepp")
@@ -75,6 +75,11 @@ object Usage {
     println(personValidator100(Person("Adam", 121, "Malmö", books)))
     println(personValidator100(Person("Adam", 120, "Malmöööööööööööööööööööööööööööööö", books)))
     println(personValidator100(validPerson))
+
+    println(length("dsdds") + "")
+    println(length(List(1,2,3,4)) + "")
+    println(length(Set(1,2,3)) + "")
+    // println(length(false) + "")
   }
 
 }
