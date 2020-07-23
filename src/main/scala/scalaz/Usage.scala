@@ -26,6 +26,15 @@ object Usage {
 
   def as(number: Int): String = Array.fill(number)("a").mkString
 
+  private val personValidator100 =
+    Kleisli(maxLength[Person]("name", 21)) >==>
+      minLengthString("name", 0) >==>
+      maxValue("age", 121) >==>
+      minValue("age", 0) >==>
+      maxLength("city", 21) >==>
+      minLengthString("city", 0) >==>
+      minLength[Set[String]]("books", 0)
+
   def main(args: Array[String]): Unit = {
     val books = Set("hepp")
     val validPerson = Person("Niklas", 47, "Malmö", books)
@@ -60,17 +69,7 @@ object Usage {
     // map
     println((personValidator3.map(_ => true)).run(validPerson))
 
-    println("********************************")
-
-    val personValidator100 =
-      Kleisli(maxLength[Person]("name", 21)) >==>
-        minLengthString("name", 0) >==>
-        maxValue("age", 121) >==>
-        minValue("age", 0) >==>
-        maxLength("city", 21) >==>
-        minLengthString("city", 0) >==>
-        minLength[Person, Set[String]]("books", 0)
-
+    println("************Val********************")
     println(personValidator100(Person("NiklasNiklasNiklasNiklas", 46, "Malmö", books)))
     println(personValidator100(Person("", 120, "Malmö", books)))
     println(personValidator100(Person("Adam", 121, "Malmö", books)))

@@ -44,15 +44,19 @@ object Validate {
     }
   }
 
-  def minLength[T, FT <: Any {def size: Int}](field: String, min: Int)(implicit ctf: ClassTag[T], ttf: TypeTag[T], m: Manifest[T], ctft: ClassTag[FT], ttft: TypeTag[FT]): Validator[T] = {
-    validateField(field)
-    (t: T) => {
-      for {
-        value <- getValue[T, FT](t, field)
-        result <- if (value.size > min) Right(t) else Left(s"Length on $field was ${value.size} but it most be greater then $min")
-      } yield result
+  final class MinLengthHelper[FT <: Any {def size: Int}] {
+    def apply[T](field: String, min: Int)(implicit ctf: ClassTag[T], ttf: TypeTag[T], m: Manifest[T], ctft: ClassTag[FT], ttft: TypeTag[FT]): Validator[T] = {
+      validateField(field)
+      (t: T) => {
+        for {
+          value <- getValue[T, FT](t, field)
+          result <- if (value.size > min) Right(t) else Left(s"Length on $field was ${value.size} but it most be greater then $min")
+        } yield result
+      }
     }
   }
+
+  def minLength[FT <: Any {def size: Int}] = new MinLengthHelper[FT]
 
   def maxValue[T](field: String, max: Int)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T]): Validator[T] =
     intValidation(field, max, v => v < max, v => s"Value on $field was $v but it must be less then $max")
