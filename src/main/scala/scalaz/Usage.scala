@@ -76,10 +76,6 @@ object Usage {
     println(personValidator100(Person("Adam", 120, "Malmöööööööööööööööööööööööööööööö", books)))
     println(personValidator100(validPerson))
 
-    println(length("dsdds") + "")
-    println(length(List(1,2,3,4)) + "")
-    println(length(Set(1,2,3)) + "")
-    // println(length(false) + "")
   }
 
 }
