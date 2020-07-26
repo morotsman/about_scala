@@ -133,14 +133,9 @@ object Usage {
       Right(salary)
     }
 
-    val avgSalary =
-      Kleisli(validatePersons) >==>
-        calculateAvgSalary
+    val avgSalary = Kleisli(validatePersons) >==> calculateAvgSalary
 
-    val avgSalaryWithLogging =
-      Kleisli(logInput) >==>
-        avgSalary >==>
-        logSuccess
+    val avgSalaryWithLogging = Kleisli(logInput) >==> avgSalary >==> logSuccess
 
     val books = Set("hepp")
     val validPerson = Person("Niklas", 47, "Malmö", books, 50000)
