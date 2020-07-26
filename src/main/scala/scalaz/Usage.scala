@@ -124,6 +124,9 @@ object Usage {
     val result2: Either[Exception, Int] = avgSalaryWithLogging(List(validPerson, validPerson2, invalidPerson))
     println(result2)
 
+    val result3: Either[Exception, Int] = avgSalaryWithLogging(List())
+    println(result3)
+
   }
 
 }
