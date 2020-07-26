@@ -107,7 +107,7 @@ object Usage {
     final case class AvgException(message: String) extends Exception(message)
 
     def calculateAvgSalary(lp: List[Person]): Either[Exception, Int] =
-      if (lp.size == 0) {
+      if (lp.isEmpty) {
         Left(AvgException("Avg on empty list"))
       } else {
         val (tot, sum) = lp.map(_.salary).foldLeft((0, 0))((acc, s) => (acc._1 + 1, acc._2 + s))
@@ -142,6 +142,5 @@ object Usage {
     val result3: Either[Exception, Int] = avgSalaryWithLogging(List())
     println(result3)
   }
-
 
 }
