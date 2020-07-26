@@ -57,6 +57,9 @@ object Usage {
   def cityValidator(p: Person): Either[String, Person] =
     if (p.city.length > 0 && p.city.length < 21) Right(p) else Left("City failed the validation")
 
+  def salaryValidator(p: Person): Either[String, Person] =
+    if (p.salary > 0 && p.salary < 20000) Right(p) else Left("Salary failed the validation")
+
   private def kleisliUsage() = {
     val books = Set("hepp")
     val validPerson = Person("Niklas", 47, "Malmö", books, 50000)
@@ -81,10 +84,21 @@ object Usage {
     // println(personValidator3.flatMapK(p => Option(p))) // will not compile
 
     // flatMap
-    // personValidator3.flatMap(p: Person => )
+    val withSalary = personValidator.flatMap((p: Person) => Kleisli(salaryValidator))
+    println("withSalary: " + withSalary(validPerson))
+
+    // lift
+    val result = personValidator.lift(Applicative[List])
+    println(result(validPerson))
+
+    // transform
+
+
   }
 
   private def validatorExample() = {
+    println("**************************")
+
     val personValidator =
       Kleisli(maxLength[Person]("name", 21)) >==>
         minLengthString("name", 0) >==>
