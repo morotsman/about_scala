@@ -133,7 +133,6 @@ object Usage {
     val validPerson2 = Person("Niklas", 47, "Malmö", books, 80000)
     val invalidPerson = Person("NiklasNiklasNiklasNiklasNiklasNiklasNiklas", 47, "Malmö", books, 500000)
 
-
     val result1: Either[Exception, Int] = avgSalaryWithLogging(List(validPerson, validPerson2))
     println(result1)
 
