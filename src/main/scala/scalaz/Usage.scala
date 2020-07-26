@@ -8,18 +8,6 @@ import Validate._
 
 object Usage {
 
-  case class Person(name: String, age: Int, city: String, books: Set[String], salary: Int)
-
-  def nameValidator(p: Person): Either[String, Person] =
-    if (p.name.length > 0 && p.name.length < 21) Right(p) else Left("Name failed the validation")
-
-  def ageValidator(p: Person): Either[String, Person] =
-    if (p.age > 0 && p.age < 121) Right(p) else Left("Age failed the validation")
-
-  def cityValidator(p: Person): Either[String, Person] =
-    if (p.city.length > 0 && p.city.length < 21) Right(p) else Left("City failed the validation")
-
-
   def main(args: Array[String]): Unit = {
     basicUsage()
 
@@ -57,6 +45,17 @@ object Usage {
     val personValidator2 = Kleisli(nameValidator) >=> Kleisli(ageValidator) >=> Kleisli(cityValidator)
     println(personValidator2(validPerson))
   }
+
+  case class Person(name: String, age: Int, city: String, books: Set[String], salary: Int)
+
+  def nameValidator(p: Person): Either[String, Person] =
+    if (p.name.length > 0 && p.name.length < 21) Right(p) else Left("Name failed the validation")
+
+  def ageValidator(p: Person): Either[String, Person] =
+    if (p.age > 0 && p.age < 121) Right(p) else Left("Age failed the validation")
+
+  def cityValidator(p: Person): Either[String, Person] =
+    if (p.city.length > 0 && p.city.length < 21) Right(p) else Left("City failed the validation")
 
   private def kleisliUsage() = {
     val books = Set("hepp")
