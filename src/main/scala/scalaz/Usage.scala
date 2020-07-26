@@ -85,7 +85,7 @@ object Usage {
   }
 
   private def validatorExample() = {
-    val personValidator100 =
+    val personValidator =
       Kleisli(maxLength[Person]("name", 21)) >==>
         minLengthString("name", 0) >==>
         maxValue("age", 121) >==>
@@ -102,7 +102,7 @@ object Usage {
     }
 
     def validatePersons(lp: List[Person]): Either[Exception, List[Person]] =
-      personValidator100 traverse lp
+      personValidator traverse lp
 
     final case class AvgException(message: String) extends Exception(message)
 
