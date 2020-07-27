@@ -12,7 +12,7 @@ object Validate {
 
   type Validator[T] = T => Either[ValidationException, T]
 
-  // TODO For some reason minLength doesn't work with String, revisit this when you know more!
+  // TODO For some reason FT <: Any {def size: Int} doesn't work with String, revisit this when you know more!
   def minLengthString[T](field: String, min: Int)(implicit ctf: ClassTag[T], ttf: TypeTag[T], m: Manifest[T]): Validator[T] =
     fieldValidator[T, String](
       field,
