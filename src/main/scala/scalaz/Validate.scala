@@ -12,7 +12,7 @@ object Validate {
   def maxLength[T](field: String, max: Int)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T]): Validator[T] =
     fieldValidator[T, String](
       field,
-      v => v.size < max,
+      v => v.length < max,
       (t, v) => s"Length on $field was ${v.length} but it must be less then $max on $t"
     )
 
@@ -20,8 +20,8 @@ object Validate {
   def minLengthString[T](field: String, min: Int)(implicit ctf: ClassTag[T], ttf: TypeTag[T], m: Manifest[T]): Validator[T] =
     fieldValidator[T, String](
       field,
-      v => v.size > min,
-      (t, v) => s"Length on $field was ${v.size} but it must be greater then $min on $t"
+      v => v.length > min,
+      (t, v) => s"Length on $field was ${v.length} but it must be greater then $min on $t"
     )
 
   final class MinLengthHelper[FT <: Any {def size: Int}] {
