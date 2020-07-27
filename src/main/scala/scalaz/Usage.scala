@@ -17,33 +17,31 @@ object Usage {
   }
 
   private def basicUsage() = {
-    val books = Set("hepp")
+    val books = Set("Programing in Scala")
     val validPerson = Person("Niklas", 47, "Malmö", books, 50000)
 
     def personValidator1(p: Person): Either[String, Person] =
       nameValidator(p).flatMap(ageValidator).flatMap(cityValidator)
 
-    println(personValidator1(validPerson))
-
-    println("*************************")
+    assert(Right(Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000)) == personValidator1(validPerson))
 
     def addOne(i: Int): Int = i + 1
 
     def double(i: Int): Int = i * 2
 
-    def as(number: Int): String = Array.fill(number)("a").mkString
-
     val composedFunction1: Int => Int = addOne _ andThen double
-    println(composedFunction1(20))
+    assert(42 == composedFunction1(20))
 
-    val composedFunction2: Int => String = addOne _ andThen as
-    println(composedFunction2(5))
+    def toAs(number: Int): String = Array.fill(number)("a").mkString
+
+    val composedFunction2: Int => String = addOne _ andThen toAs
+    assert("aaaaaa" == composedFunction2(5))
 
     // val composedFunction3 = (nameValidator _).andThen(ageValidator) // will not compile, the types don't line up
 
     // andThen
     val personValidator2 = Kleisli(nameValidator) >=> Kleisli(ageValidator) >=> Kleisli(cityValidator)
-    println(personValidator2(validPerson))
+    assert(Right(Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000)) == personValidator2(validPerson))
   }
 
   case class Person(name: String, age: Int, city: String, books: Set[String], salary: Int)
@@ -61,19 +59,24 @@ object Usage {
     if (p.salary > 0 && p.salary < 20000) Right(p) else Left("Salary failed the validation")
 
   private def kleisliUsage() = {
-    val books = Set("hepp")
+    val books = Set("Programing in Scala")
     val validPerson = Person("Niklas", 47, "Malmö", books, 50000)
     val invalidPerson = Person("NiklasNiklasNiklasNiklasNiklasNiklasNiklas", 47, "Malmö", books, 500000)
 
     val personValidator = Kleisli(nameValidator) >==> ageValidator >==> cityValidator
-    println(personValidator(validPerson))
+    assert(Right(Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000)) == personValidator(validPerson))
 
     // traverse
-    println(personValidator.traverse(List(validPerson, validPerson)))
-    println(personValidator.traverse(List(validPerson, validPerson, invalidPerson)))
+    assert(
+      Right(List(
+        Person("Niklas",47,"Malmö",Set("Programing in Scala"),50000),
+        Person("Niklas",47,"Malmö",Set("Programing in Scala"),50000)
+      )) == personValidator.traverse(List(validPerson, validPerson))
+    )
+    assert(Left("Name failed the validation") == personValidator.traverse(List(validPerson, validPerson, invalidPerson)))
 
     // map
-    println((personValidator.map(_ => true)).run(validPerson))
+    assert(Right(true) == (personValidator.map(_ => true)).run(validPerson))
 
     // mapT && mapK
     val optionValidator = personValidator.mapT((ep: Either[String, Person]) => if (ep.isRight) Option(ep.right) else None)
