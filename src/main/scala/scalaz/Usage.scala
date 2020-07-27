@@ -117,7 +117,6 @@ object Usage {
         minLength[Set[String]]("books", 0) >==>
         minValue("salary", 0)
 
-
     def logInput(lp: List[Person]): Either[Exception, List[Person]] = {
       println(s"Will calculate the avg salary for ${lp.size} persons")
       Right(lp)
@@ -151,6 +150,7 @@ object Usage {
     val invalidPerson = Person("NiklasNiklasNiklasNiklasNiklasNiklasNiklas", 47, "Malmö", books, 500000)
 
     val result1: Either[Exception, Int] = avgSalaryWithLogging(List(validPerson, validPerson2))
+    println(result1)
     assert(Right(65000) == result1)
 
     val result2: Either[Exception, Int] = avgSalaryWithLogging(List(validPerson, validPerson2, invalidPerson))
