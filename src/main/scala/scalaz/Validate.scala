@@ -61,10 +61,20 @@ object Validate {
   def minLength[FT <: Any {def size: Int}] = new MinLengthHelper[FT]
 
   def maxValue[T](field: String, max: Int)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T]): Validator[T] =
-    intValidation(field, max, v => v < max, (t, v) => s"Value on $field was $v but it must be less then $max on $t")
+    intValidation(
+      field,
+      max,
+      v => v < max,
+      (t, v) => s"Value on $field was $v but it must be less then $max on $t"
+    )
 
   def minValue[T](field: String, min: Int)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T]): Validator[T] =
-    intValidation(field, min, value => value > min, (t, v) => s"Value on $field was $v but it must be greater then $min on $t")
+    intValidation(
+      field,
+      min,
+      value => value > min,
+      (t, v) => s"Value on $field was $v but it must be greater then $min on $t"
+    )
 
   private def intValidation[T](field: String, max: Int, op: Int => Boolean, errorMessage: (T, Int) => String)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T]): Validator[T] = {
     validateField(field)
