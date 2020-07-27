@@ -19,21 +19,19 @@ object Usage {
   private def basicUsage() = {
     val books = Set("Programing in Scala")
     val validPerson = Person("Niklas", 47, "Malmö", books, 50000)
+    val invalidPerson = Person("NiklasNiklasNiklasNiklasNiklasNiklasNiklas", 47, "Malmö", books, 500000)
 
     def personValidator1(p: Person): Either[String, Person] =
       nameValidator(p).flatMap(ageValidator).flatMap(cityValidator)
-
     assert(Right(Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000)) == personValidator1(validPerson))
+    assert(Left("Name failed the validation") == personValidator1(invalidPerson))
 
     def addOne(i: Int): Int = i + 1
-
     def double(i: Int): Int = i * 2
-
     val composedFunction1: Int => Int = addOne _ andThen double
     assert(42 == composedFunction1(20))
 
     def toAs(number: Int): String = Array.fill(number)("a").mkString
-
     val composedFunction2: Int => String = addOne _ andThen toAs
     assert("aaaaaa" == composedFunction2(5))
 
@@ -42,6 +40,7 @@ object Usage {
     // andThen
     val personValidator2 = Kleisli(nameValidator) >=> Kleisli(ageValidator) >=> Kleisli(cityValidator)
     assert(Right(Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000)) == personValidator2(validPerson))
+    assert(Left("Name failed the validation") == personValidator2(invalidPerson))
   }
 
   case class Person(name: String, age: Int, city: String, books: Set[String], salary: Int)
