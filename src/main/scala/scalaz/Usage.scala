@@ -2,8 +2,9 @@ package scalaz
 
 import scalaz._
 import Scalaz._
-
 import Validate._
+
+import scala.util.Either.RightProjection
 
 
 object Usage {
@@ -23,15 +24,19 @@ object Usage {
 
     def personValidator1(p: Person): Either[String, Person] =
       nameValidator(p).flatMap(ageValidator).flatMap(cityValidator)
+
     assert(Right(Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000)) == personValidator1(validPerson))
     assert(Left("Name failed the validation") == personValidator1(invalidPerson))
 
     def addOne(i: Int): Int = i + 1
+
     def double(i: Int): Int = i * 2
+
     val composedFunction1: Int => Int = addOne _ andThen double
     assert(42 == composedFunction1(20))
 
     def toAs(number: Int): String = Array.fill(number)("a").mkString
+
     val composedFunction2: Int => String = addOne _ andThen toAs
     assert("aaaaaa" == composedFunction2(5))
 
@@ -68,8 +73,8 @@ object Usage {
     // traverse
     assert(
       Right(List(
-        Person("Niklas",47,"Malmö",Set("Programing in Scala"),50000),
-        Person("Niklas",47,"Malmö",Set("Programing in Scala"),50000)
+        Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000),
+        Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000)
       )) == personValidator.traverse(List(validPerson, validPerson))
     )
     assert(Left("Name failed the validation") == personValidator.traverse(List(validPerson, validPerson, invalidPerson)))
@@ -79,19 +84,20 @@ object Usage {
 
     // mapT && mapK
     val optionValidator = personValidator.mapT((ep: Either[String, Person]) => if (ep.isRight) Option(ep.right) else None)
-    println(optionValidator(validPerson))
+    assert(Some(RightProjection(Right(Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000)))) == optionValidator(validPerson))
 
     // flatMapK
-    println(personValidator.flatMapK((p: Person) => Right(p)))
-    // println(personValidator3.flatMapK(p => Option(p))) // will not compile
+    val validator = personValidator.flatMapK((p: Person) => Right(p))
+    assert((validator(validPerson) == Right(Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000))))
+    // personValidator3.flatMapK(p => Option(p)) // will not compile
 
     // flatMap
     val withSalary = personValidator.flatMap((p: Person) => Kleisli(salaryValidator))
-    println("withSalary: " + withSalary(validPerson))
+    assert(Left("Salary failed the validation") == withSalary(validPerson))
 
     // lift
     val result = personValidator.lift(Applicative[List])
-    println(result(validPerson))
+    assert(List(Right(Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000))) == result(validPerson))
 
     // transform
 
@@ -139,19 +145,19 @@ object Usage {
 
     val avgSalaryWithLogging = Kleisli(logInput) >==> avgSalary >==> logSuccess
 
-    val books = Set("hepp")
+    val books = Set("Programing in Scala")
     val validPerson = Person("Niklas", 47, "Malmö", books, 50000)
     val validPerson2 = Person("Niklas", 47, "Malmö", books, 80000)
     val invalidPerson = Person("NiklasNiklasNiklasNiklasNiklasNiklasNiklas", 47, "Malmö", books, 500000)
 
     val result1: Either[Exception, Int] = avgSalaryWithLogging(List(validPerson, validPerson2))
-    println(result1)
+    assert(Right(65000) == result1)
 
     val result2: Either[Exception, Int] = avgSalaryWithLogging(List(validPerson, validPerson2, invalidPerson))
-    println(result2)
+    assert("Left(scalaz.ValidationException: Length on name was 42 but it must be less then 21 on Person(NiklasNiklasNiklasNiklasNiklasNiklasNiklas,47,Malmö,Set(Programing in Scala),500000))" == result2.toString)
 
     val result3: Either[Exception, Int] = avgSalaryWithLogging(List())
-    println(result3)
+    assert("Left(scalaz.Usage$AvgException$1: Avg on empty list)" == result3.toString)
   }
 
 }
