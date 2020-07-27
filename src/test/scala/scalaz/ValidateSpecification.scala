@@ -133,12 +133,12 @@ object ValidateSpecification extends Properties("Validate") {
     }
   }
 
-  property("wrong type on field") = forAll { (name: String) =>
+  property("wrong type on field") = forAll { (salary: Int) =>
     val minSalary = 3
     val field = "name"
     val validate = minValue[Person](field, minSalary)
 
-    val person = Person()
+    val person = Person(salary = salary)
 
     val result = validate(person)
     result == Left(ValidationException(s"Wrong type on field $field:  ${new ClassCastException("Cannot cast java.lang.String to java.lang.Integer")}"))
