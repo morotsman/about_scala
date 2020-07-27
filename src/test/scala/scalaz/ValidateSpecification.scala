@@ -7,9 +7,9 @@ import scalaz.Validate._
 import scalaz._
 import Scalaz._
 
-object ValidateSpecification extends Properties("String") {
+object ValidateSpecification extends Properties("Validate") {
 
-  case class Person(name: String)
+  case class Person(name: String = "", books: Set[String] = Set(), salary: Int = 0)
 
   property("maxLengthString") = forAll { (name: String) =>
     val maxLength = 5
@@ -47,10 +47,10 @@ object ValidateSpecification extends Properties("String") {
     val field = "name"
     val minValidator = minLengthString[Person](field, minLength)
     val maxValidator = maxLengthString[Person](field, maxLength)
-    val validator = Validate(minValidator) >==> maxValidator
+    val validate = Validate(minValidator) >==> maxValidator
     val person = Person(name)
 
-    val result = validator(person)
+    val result = validate(person)
 
     if (name.length <= minLength) {
       result == Left(ValidationException(s"Length on $field was ${name.length} but it must be greater then $minLength on $person"))
@@ -58,6 +58,36 @@ object ValidateSpecification extends Properties("String") {
       result == Left(ValidationException(s"Length on $field was ${name.length} but it must be less then $maxLength on $person"))
     } else {
       result == Right(Person(name))
+    }
+  }
+
+  property("minLength") = forAll { (books: Set[String]) =>
+    val minSetLength = 2
+    val field = "books"
+    val validator: Validator[Person] = minLength[Set[_]][Person](field, minSetLength)
+    val person = Person(books = books)
+
+    val result = validator(person)
+
+    if (books.length > minSetLength) {
+      result == Right(Person(books = books))
+    } else {
+      result == Left(ValidationException(s"Length on $field was ${books.size} but it must be greater then $minSetLength on $person"))
+    }
+  }
+
+  property("maxLength") = forAll { (books: Set[String]) =>
+    val maxSetLength = 5
+    val field = "books"
+    val validator: Validator[Person] = maxLength[Set[_]][Person](field, maxSetLength)
+    val person = Person(books = books)
+
+    val result = validator(person)
+
+    if (books.length < maxSetLength) {
+      result == Right(Person(books = books))
+    } else {
+      result == Left(ValidationException(s"Length on $field was ${books.size} but it must be less then $maxSetLength on $person"))
     }
   }
 
