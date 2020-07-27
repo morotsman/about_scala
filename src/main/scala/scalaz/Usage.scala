@@ -1,6 +1,5 @@
 package scalaz
 
-import scalaz._
 import Scalaz._
 import Validate._
 
