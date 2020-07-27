@@ -105,8 +105,6 @@ object Usage {
   }
 
   private def validatorExample() = {
-    println("**************************")
-
     val personValidator =
       Kleisli(maxLength[Person]("name", 21)) >==>
         minLengthString("name", 0) >==>

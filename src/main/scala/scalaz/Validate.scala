@@ -8,7 +8,6 @@ final case class ValidationException(message: String) extends Exception(message)
 object Validate {
   type Validator[T] = T => Either[ValidationException, T]
 
-
   def maxLength[T](field: String, max: Int)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T]): Validator[T] =
     fieldValidator[T, String](
       field,
