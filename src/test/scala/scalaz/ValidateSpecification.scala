@@ -3,9 +3,9 @@ package scalaz
 import org.scalacheck.Properties
 import org.scalacheck.Prop.forAll
 import scalaz.Validate._
-
 import scalaz._
 import Scalaz._
+import org.scalacheck.Gen.Parameters
 
 object ValidateSpecification extends Properties("Validate") {
 
