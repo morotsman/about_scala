@@ -6,6 +6,10 @@ import scala.reflect.runtime.universe._
 final case class ValidationException(message: String) extends Exception(message)
 
 object Validate {
+
+  def apply[T](v: Validator[T]): Kleisli[({type f[x] = Either[ValidationException, x]})#f, T, T] =
+    Kleisli(v)
+
   type Validator[T] = T => Either[ValidationException, T]
 
   // TODO For some reason minLength doesn't work with String, revisit this when you know more!

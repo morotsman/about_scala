@@ -105,8 +105,10 @@ object Usage {
   }
 
   private def validatorExample() = {
+    val tmp: Validator[Person] = maxLengthString[Person]("name", 21)
+
     val personValidator =
-      Kleisli(maxLengthString[Person]("name", 21)) >==>
+      Validate[Person](maxLengthString("name", 21)) >==>
         minLengthString("name", 0) >==>
         maxValue("age", 121) >==>
         minValue("age", 0) >==>
