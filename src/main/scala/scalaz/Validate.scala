@@ -8,13 +8,6 @@ final case class ValidationException(message: String) extends Exception(message)
 object Validate {
   type Validator[T] = T => Either[ValidationException, T]
 
-  def maxLength[T](field: String, max: Int)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T]): Validator[T] =
-    fieldValidator[T, String](
-      field,
-      v => v.length < max,
-      (t, v) => s"Length on $field was ${v.length} but it must be less then $max on $t"
-    )
-
   // TODO For some reason minLength doesn't work with String, revisit this when you know more!
   def minLengthString[T](field: String, min: Int)(implicit ctf: ClassTag[T], ttf: TypeTag[T], m: Manifest[T]): Validator[T] =
     fieldValidator[T, String](
@@ -33,6 +26,24 @@ object Validate {
   }
 
   def minLength[FT <: Any {def size: Int}] = new MinLengthHelper[FT]
+
+  def maxLengthString[T](field: String, max: Int)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T]): Validator[T] =
+    fieldValidator[T, String](
+      field,
+      v => v.length < max,
+      (t, v) => s"Length on $field was ${v.length} but it must be less then $max on $t"
+    )
+
+  final class MaxLengthHelper[FT <: Any {def size: Int}] {
+    def apply[T](field: String, max: Int)(implicit ctf: ClassTag[T], ttf: TypeTag[T], m: Manifest[T], ctft: ClassTag[FT], ttft: TypeTag[FT]): Validator[T] =
+      fieldValidator[T, FT](
+        field,
+        v => v.size < max,
+        (t, v) => s"Length on $field was ${v.size} but it must be less then $max on $t"
+      )
+  }
+
+  def maxLength[FT <: Any {def size: Int}] = new MaxLengthHelper[FT]
 
   def maxValue[T](field: String, max: Int)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T]): Validator[T] =
     fieldValidator[T, Integer](
