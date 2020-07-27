@@ -114,8 +114,8 @@ object Usage {
         minValue("age", 0) >==>
         maxLengthString("city", 21) >==>
         minLengthString("city", 0) >==>
-        minLength[Set[String]]("books", 0) >==>
-        maxLength[Set[String]]("books", 1000) >==>
+        minLength[Set[_]]("books", 0) >==>
+        maxLength[Set[_]]("books", 1000) >==>
         minValue("salary", 0)
 
     def logInput(lp: List[Person]): Either[Exception, List[Person]] = {
