@@ -9,10 +9,10 @@ object Validate {
   type Validator[T] = T => Either[ValidationException, T]
 
   // https://stackoverflow.com/questions/6686992/scala-asinstanceof-with-parameterized-types
-  def cast[A <: Any : Manifest](a: Any): A =
+  private def cast[A <: Any : Manifest](a: Any): A =
     manifest[A].runtimeClass.cast(a).asInstanceOf[A]
 
-  def getValue[I, O](obj: I, field: String)(implicit ct: ClassTag[I], tt: TypeTag[I], ct1: ClassTag[O], tt1: TypeTag[O]): Either[ValidationException, O] = {
+  private def getValue[I, O](obj: I, field: String)(implicit ct: ClassTag[I], tt: TypeTag[I], ct1: ClassTag[O], tt1: TypeTag[O]): Either[ValidationException, O] = {
     try {
       val symbol = typeOf[I].member(TermName(field)).asMethod
       val m = runtimeMirror(obj.getClass.getClassLoader)
