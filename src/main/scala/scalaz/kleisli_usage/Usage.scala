@@ -16,7 +16,7 @@ object Usage {
     validatorExample()
   }
 
-  private def basicUsage() = {
+  private def basicUsage(): Unit = {
     val books = Set("Programing in Scala")
     val validPerson = Person("Niklas", "Malmö", books, 50000)
     val invalidPerson = Person("NiklasNiklasNiklasNiklasNiklasNiklasNiklas", "Malmö", books, 500000)
@@ -58,7 +58,7 @@ object Usage {
   def salaryValidator(p: Person): Either[String, Person] =
     if (p.salary > 0 && p.salary < 100000) Right(p) else Left("Salary failed the validation")
 
-  private def kleisliUsage() = {
+  private def kleisliUsage(): Unit = {
     val books = Set("Programing in Scala")
     val validPerson = Person("Niklas", "Malmö", books, 150000)
     val invalidPerson = Person("NiklasNiklasNiklasNiklasNiklasNiklasNiklas", "Malmö", books, 500000)
@@ -97,7 +97,7 @@ object Usage {
 
   }
 
-  val personValidator =
+  private val personValidator =
     Validate[Person] >==>
       (maxLengthString(20) on "name")  >==>
       (minLengthString(0) on "name") >==>
@@ -108,7 +108,7 @@ object Usage {
       (minValue(0) on "salary") >==>
       (maxValue(100000) on "salary")
 
-  private def validatorExample() = {
+  private def validatorExample(): Unit = {
     val max21: Validator[Person, String] = maxLengthString[Person](20)
     val tmp: FieldValidator[Person] = max21.on("name")
 

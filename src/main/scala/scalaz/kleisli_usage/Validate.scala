@@ -64,23 +64,23 @@ object Validate {
       validateField(fieldName)
       (t: T) => {
         for {
-          value <- getValue[T, FT](t, fieldName)
+          value <- getValue(t, fieldName)
           result <- if (op(value)) Right(t) else Left(ValidationException(errorMessage(t, value, fieldName)))
         } yield result
       }
     }
 
-    private def validateField[T](field: String)(implicit m: Manifest[T]): Unit = {
+    private def validateField(field: String)(implicit m: Manifest[T]): Unit = {
       val fieldExists = manifest[T].runtimeClass.getMethods.exists(m => m.getName == field)
       if (!fieldExists) throw new RuntimeException(s"Could not find a field called $field")
     }
 
-    private def getValue[I, O](obj: I, field: String)(implicit ct: ClassTag[I], tt: TypeTag[I], ct1: ClassTag[O], tt1: TypeTag[O]): Either[ValidationException, O] = {
+    private def getValue(obj: T, field: String)(implicit ct: ClassTag[T], tt: TypeTag[T], ct1: ClassTag[FT], tt1: TypeTag[FT]): Either[ValidationException, FT] = {
       try {
-        val symbol = typeOf[I].member(TermName(field)).asMethod
+        val symbol = typeOf[T].member(TermName(field)).asMethod
         val m = runtimeMirror(obj.getClass.getClassLoader)
         val im = m.reflect(obj)
-        val value: O = cast[O](im.reflectMethod(symbol).apply())
+        val value: FT = cast[FT](im.reflectMethod(symbol).apply())
         Right(value)
       } catch {
         case e: ClassCastException => Left(ValidationException(s"Wrong type on field $field:  $e"))
