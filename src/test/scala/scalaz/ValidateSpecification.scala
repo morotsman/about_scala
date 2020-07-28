@@ -18,7 +18,7 @@ object ValidateSpecification extends Properties("Validate") {
 
     val result = validator(person)
 
-    if (name.length < maxLength) {
+    if (name.length <= maxLength) {
       result == Right(person)
     } else {
       result == Left(ValidationException(s"Length on $field was ${name.length} but it must be less then $maxLength on $person"))
@@ -33,7 +33,7 @@ object ValidateSpecification extends Properties("Validate") {
 
     val result = validate(person)
 
-    if (name.length > minLength) {
+    if (name.length >= minLength) {
       result == Right(person)
     } else {
       result == Left(ValidationException(s"Length on $field was ${name.length} but it must be greater then $minLength on $person"))
@@ -51,9 +51,9 @@ object ValidateSpecification extends Properties("Validate") {
 
     val result = validate(person)
 
-    if (name.length <= minLength) {
+    if (name.length < minLength) {
       result == Left(ValidationException(s"Length on $field was ${name.length} but it must be greater then $minLength on $person"))
-    } else if (name.length >= maxLength) {
+    } else if (name.length > maxLength) {
       result == Left(ValidationException(s"Length on $field was ${name.length} but it must be less then $maxLength on $person"))
     } else {
       result == Right(person)
@@ -68,7 +68,7 @@ object ValidateSpecification extends Properties("Validate") {
 
     val result = validate(person)
 
-    if (books.length > minSetLength) {
+    if (books.length >= minSetLength) {
       result == Right(person)
     } else {
       result == Left(ValidationException(s"Length on $field was ${books.size} but it must be greater then $minSetLength on $person"))
@@ -83,7 +83,7 @@ object ValidateSpecification extends Properties("Validate") {
 
     val result = validate(person)
 
-    if (books.length < maxSetLength) {
+    if (books.length <= maxSetLength) {
       result == Right(person)
     } else {
       result == Left(ValidationException(s"Length on $field was ${books.size} but it must be less then $maxSetLength on $person"))
@@ -98,7 +98,7 @@ object ValidateSpecification extends Properties("Validate") {
 
     val result = validate(person)
 
-    if (salary < maxSalary) {
+    if (salary <= maxSalary) {
       result == Right(person)
     } else {
       result == Left(ValidationException(s"Value on $field was $salary but it must be less then $maxSalary on $person"))
@@ -113,7 +113,7 @@ object ValidateSpecification extends Properties("Validate") {
 
     val result = validate(person)
 
-    if (salary > minSalary) {
+    if (salary >= minSalary) {
       result == Right(person)
     } else {
       result == Left(ValidationException(s"Value on $field was $salary but it must be greater then $minSalary on $person"))

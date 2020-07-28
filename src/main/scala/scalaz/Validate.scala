@@ -14,21 +14,21 @@ object Validate {
 
   def maxLengthString[T](max: Int): Validator[T, String] =
     Validator[T, String](
-      v => v.length < max,
+      v => v.length <= max,
       (t, v, f) => s"Length on $f was ${v.length} but it must be less then $max on $t"
     )
 
   // TODO For some reason FT <: Any {def size: Int} doesn't work with String, revisit this when you know more!
   def minLengthString[T](min: Int): Validator[T, String] =
     Validator[T, String](
-      v => v.length > min,
+      v => v.length >= min,
       (t, v, f) => s"Length on $f was ${v.length} but it must be greater then $min on $t"
     )
 
   final class MinLengthHelper[FT <: Any {def size: Int}] {
     def apply[T](min: Int): Validator[T, FT] =
       Validator[T, FT](
-        v => v.size > min,
+        v => v.size >= min,
         (t, v, f) => s"Length on $f was ${v.size} but it must be greater then $min on $t"
       )
   }
@@ -38,7 +38,7 @@ object Validate {
   final class MaxLengthHelper[FT <: Any {def size: Int}] {
     def apply[T](max: Int): Validator[T, FT] =
       Validator[T, FT](
-        v => v.size < max,
+        v => v.size <= max,
         (t, v, f) => s"Length on $f was ${v.size} but it must be less then $max on $t"
       )
   }
@@ -47,13 +47,13 @@ object Validate {
 
   def maxValue[T](max: Int): Validator[T, Integer] =
     Validator[T, Integer](
-      v => v < max,
+      v => v <= max,
       (t, v, f) => s"Value on $f was $v but it must be less then $max on $t"
     )
 
   def minValue[T](min: Int): Validator[T, Integer] =
     Validator[T, Integer](
-      value => value > min,
+      value => value >= min,
       (t, v, f) => s"Value on $f was $v but it must be greater then $min on $t"
     )
 
