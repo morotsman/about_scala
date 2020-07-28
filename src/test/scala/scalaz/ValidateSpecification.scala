@@ -21,7 +21,7 @@ object ValidateSpecification extends Properties("Validate") {
     if (name.length <= maxLength) {
       result == Right(person)
     } else {
-      result == Left(ValidationException(s"Length on $field was ${name.length} but it must be less then $maxLength on $person"))
+      result == Left(ValidationException(s"Length on $field was ${name.length} but it must be less or equal to $maxLength for $person"))
     }
   }
 
@@ -36,7 +36,7 @@ object ValidateSpecification extends Properties("Validate") {
     if (name.length >= minLength) {
       result == Right(person)
     } else {
-      result == Left(ValidationException(s"Length on $field was ${name.length} but it must be greater then $minLength on $person"))
+      result == Left(ValidationException(s"Length on $field was ${name.length} but it must be greater or equal to $minLength for $person"))
     }
   }
 
@@ -52,9 +52,9 @@ object ValidateSpecification extends Properties("Validate") {
     val result = validate(person)
 
     if (name.length < minLength) {
-      result == Left(ValidationException(s"Length on $field was ${name.length} but it must be greater then $minLength on $person"))
+      result == Left(ValidationException(s"Length on $field was ${name.length} but it must be greater or equal to $minLength for $person"))
     } else if (name.length > maxLength) {
-      result == Left(ValidationException(s"Length on $field was ${name.length} but it must be less then $maxLength on $person"))
+      result == Left(ValidationException(s"Length on $field was ${name.length} but it must be less or equal to $maxLength for $person"))
     } else {
       result == Right(person)
     }
@@ -71,7 +71,7 @@ object ValidateSpecification extends Properties("Validate") {
     if (books.length >= minSetLength) {
       result == Right(person)
     } else {
-      result == Left(ValidationException(s"Length on $field was ${books.size} but it must be greater then $minSetLength on $person"))
+      result == Left(ValidationException(s"Length on $field was ${books.size} but it must be greater or equal to $minSetLength for $person"))
     }
   }
 
@@ -86,7 +86,7 @@ object ValidateSpecification extends Properties("Validate") {
     if (books.length <= maxSetLength) {
       result == Right(person)
     } else {
-      result == Left(ValidationException(s"Length on $field was ${books.size} but it must be less then $maxSetLength on $person"))
+      result == Left(ValidationException(s"Length on $field was ${books.size} but it must be less or equal to $maxSetLength for $person"))
     }
   }
 
@@ -101,7 +101,7 @@ object ValidateSpecification extends Properties("Validate") {
     if (salary <= maxSalary) {
       result == Right(person)
     } else {
-      result == Left(ValidationException(s"Value on $field was $salary but it must be less then $maxSalary on $person"))
+      result == Left(ValidationException(s"Value on $field was $salary but it must be less or equal to $maxSalary for $person"))
     }
   }
 
@@ -116,7 +116,7 @@ object ValidateSpecification extends Properties("Validate") {
     if (salary >= minSalary) {
       result == Right(person)
     } else {
-      result == Left(ValidationException(s"Value on $field was $salary but it must be greater then $minSalary on $person"))
+      result == Left(ValidationException(s"Value on $field was $salary but it must be greater or equal to $minSalary for $person"))
     }
   }
 

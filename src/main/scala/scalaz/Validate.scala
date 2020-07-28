@@ -15,21 +15,21 @@ object Validate {
   def maxLengthString[T](max: Int): Validator[T, String] =
     Validator[T, String](
       v => v.length <= max,
-      (t, v, f) => s"Length on $f was ${v.length} but it must be less then $max on $t"
+      (t, v, f) => s"Length on $f was ${v.length} but it must be less or equal to $max for $t"
     )
 
   // TODO For some reason FT <: Any {def size: Int} doesn't work with String, revisit this when you know more!
   def minLengthString[T](min: Int): Validator[T, String] =
     Validator[T, String](
       v => v.length >= min,
-      (t, v, f) => s"Length on $f was ${v.length} but it must be greater then $min on $t"
+      (t, v, f) => s"Length on $f was ${v.length} but it must be greater or equal to $min for $t"
     )
 
   final class MinLengthHelper[FT <: Any {def size: Int}] {
     def apply[T](min: Int): Validator[T, FT] =
       Validator[T, FT](
         v => v.size >= min,
-        (t, v, f) => s"Length on $f was ${v.size} but it must be greater then $min on $t"
+        (t, v, f) => s"Length on $f was ${v.size} but it must be greater or equal to $min for $t"
       )
   }
 
@@ -39,7 +39,7 @@ object Validate {
     def apply[T](max: Int): Validator[T, FT] =
       Validator[T, FT](
         v => v.size <= max,
-        (t, v, f) => s"Length on $f was ${v.size} but it must be less then $max on $t"
+        (t, v, f) => s"Length on $f was ${v.size} but it must be less or equal to $max for $t"
       )
   }
 
@@ -48,13 +48,13 @@ object Validate {
   def maxValue[T](max: Int): Validator[T, Integer] =
     Validator[T, Integer](
       v => v <= max,
-      (t, v, f) => s"Value on $f was $v but it must be less then $max on $t"
+      (t, v, f) => s"Value on $f was $v but it must be less or equal to $max for $t"
     )
 
   def minValue[T](min: Int): Validator[T, Integer] =
     Validator[T, Integer](
       value => value >= min,
-      (t, v, f) => s"Value on $f was $v but it must be greater then $min on $t"
+      (t, v, f) => s"Value on $f was $v but it must be greater or equal to $min for $t"
     )
 
   case class Validator[T, FT](op: FT => Boolean, errorMessage: (T, FT, String) => String) {
