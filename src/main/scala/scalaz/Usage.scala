@@ -97,21 +97,21 @@ object Usage {
 
   }
 
+  val personValidator =
+    Validate[Person](maxLengthString(20) on "name") >==>
+      (minLengthString(0) on "name") >==>
+      (maxLengthString(20) on "city") >==>
+      (minLengthString(0) on "city") >==>
+      (minLength[Set[_]](0) on "books") >==>
+      (maxLength[Set[_]](1000) on "books") >==>
+      (minValue(0) on "salary") >==>
+      (maxValue(100000) on "salary")
+
   private def validatorExample() = {
     val max21: Validator[Person, String] = maxLengthString[Person](20)
     val tmp: FieldValidator[Person] = max21.on("name")
 
     val tmp2: FieldValidator[Person] = maxLengthString[Person](20).on("name")
-
-    val personValidator =
-      Validate[Person](maxLengthString(20) on "name") >==>
-        (minLengthString(0) on "name") >==>
-        (maxLengthString(20) on "city") >==>
-        (minLengthString(0) on "city") >==>
-        (minLength[Set[_]](0) on "books") >==>
-        (maxLength[Set[_]](1000) on "books") >==>
-        (minValue(0) on "salary") >==>
-        (maxValue(100000) on "salary")
 
     def logInput(lp: List[Person]): Either[Exception, List[Person]] = {
       println(s"Will calculate the avg salary for ${lp.size} persons")
