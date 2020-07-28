@@ -11,8 +11,8 @@ object Validate {
 
   type FieldValidator[T] = T => Either[ValidationException, T]
 
-  def apply[T](v: FieldValidator[T]): Kleisli[({type f[x] = Either[ValidationException, x]})#f, T, T] =
-    Kleisli(v)
+  def apply[T]: Kleisli[({type f[x] = Either[ValidationException, x]})#f, T, T] =
+    Kleisli(t => Right(t))
 
   def maxLengthString[T](max: Int): Validator[T, String] =
     Validator[T, String](

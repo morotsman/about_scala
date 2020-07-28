@@ -98,7 +98,8 @@ object Usage {
   }
 
   val personValidator =
-    Validate[Person](maxLengthString(20) on "name") >==>
+    Validate[Person] >==>
+      (maxLengthString(20) on "name")  >==>
       (minLengthString(0) on "name") >==>
       (maxLengthString(20) on "city") >==>
       (minLengthString(0) on "city") >==>
