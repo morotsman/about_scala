@@ -11,6 +11,7 @@ object Validate {
 
   type FieldValidator[T] = T => Either[ValidationException, T]
 
+  // alias for Kleisli
   def apply[T]: Kleisli[({type f[x] = Either[ValidationException, x]})#f, T, T] =
     Kleisli(t => Right(t))
 
@@ -35,6 +36,7 @@ object Validate {
       )
   }
 
+  // "curry" the type parameters to enable type inference on second type parameter
   def minLength[FT <: Any {def size: Int}] = new MinLengthHelper[FT]
 
   final class MaxLengthHelper[FT <: Any {def size: Int}] {

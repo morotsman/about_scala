@@ -39,7 +39,7 @@ object Usage {
     val composedFunction2: Int => String = addOne _ andThen toAs
     assert("aaaaaa" == composedFunction2(5))
 
-    // val composedFunction3 = (nameValidator _).andThen(ageValidator) // will not compile, the types don't line up
+    // val composedFunction3 = (nameValidator _).andThen(salaryValidator) // will not compile, the types don't line up
 
     // andThen
     val personValidator2 = Kleisli(nameValidator) >=> Kleisli(salaryValidator) >=> Kleisli(cityValidator)
