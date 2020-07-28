@@ -12,13 +12,11 @@ object Validate {
 
   type Validator[T] = T => Either[ValidationException, T]
 
-
   def maxLengthString[T](max: Int): FieldValidator[T, String] =
     FieldValidator[T, String](
       v => v.length < max,
       (t, v, f) => s"Length on $f was ${v.length} but it must be less then $max on $t"
     )
-
 
   // TODO For some reason FT <: Any {def size: Int} doesn't work with String, revisit this when you know more!
   def minLengthString[T](min: Int): FieldValidator[T, String] =
@@ -26,7 +24,6 @@ object Validate {
       v => v.length > min,
       (t, v, f) => s"Length on $f was ${v.length} but it must be greater then $min on $t"
     )
-
 
   final class MinLengthHelper[FT <: Any {def size: Int}] {
     def apply[T](min: Int): FieldValidator[T, FT] =
@@ -38,30 +35,27 @@ object Validate {
 
   def minLength[FT <: Any {def size: Int}] = new MinLengthHelper[FT]
 
-   final class MaxLengthHelper[FT <: Any {def size: Int}] {
-     def apply[T](max: Int): FieldValidator[T, FT] =
-       FieldValidator[T, FT](
-         v => v.size < max,
-         (t, v, f) => s"Length on $f was ${v.size} but it must be less then $max on $t"
-       )
-   }
+  final class MaxLengthHelper[FT <: Any {def size: Int}] {
+    def apply[T](max: Int): FieldValidator[T, FT] =
+      FieldValidator[T, FT](
+        v => v.size < max,
+        (t, v, f) => s"Length on $f was ${v.size} but it must be less then $max on $t"
+      )
+  }
 
-   def maxLength[FT <: Any {def size: Int}] = new MaxLengthHelper[FT]
+  def maxLength[FT <: Any {def size: Int}] = new MaxLengthHelper[FT]
 
+  def maxValue[T](max: Int): FieldValidator[T, Integer] =
+    FieldValidator[T, Integer](
+      v => v < max,
+      (t, v, f) => s"Value on $f was $v but it must be less then $max on $t"
+    )
 
-   def maxValue[T](max: Int): FieldValidator[T, Integer] =
-     FieldValidator[T, Integer](
-       v => v < max,
-       (t, v, f) => s"Value on $f was $v but it must be less then $max on $t"
-     )
-
-   def minValue[T](min: Int): FieldValidator[T, Integer] =
-     FieldValidator[T, Integer](
-       value => value > min,
-       (t, v, f) => s"Value on $f was $v but it must be greater then $min on $t"
-     )
-
-
+  def minValue[T](min: Int): FieldValidator[T, Integer] =
+    FieldValidator[T, Integer](
+      value => value > min,
+      (t, v, f) => s"Value on $f was $v but it must be greater then $min on $t"
+    )
 
   case class FieldValidator[T, FT](op: FT => Boolean, errorMessage: (T, FT, String) => String) {
     def on(fieldName: String)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T], ctf: ClassTag[FT], ttf: TypeTag[FT]): Validator[T] = {
