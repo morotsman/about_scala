@@ -1,4 +1,6 @@
-package scalaz
+package scalaz.kleisli_usage
+
+import scalaz.Kleisli
 
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._

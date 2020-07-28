@@ -1,14 +1,14 @@
-package scalaz
+package scalaz.kleisli_usage
 
-import org.scalacheck.Properties
 import org.scalacheck.Prop.forAll
-import scalaz.Validate._
-import Scalaz._
+import org.scalacheck.Properties
+
+import scalaz.Scalaz._
+import scalaz.kleisli_usage.Validate._
 
 object ValidateSpecification extends Properties("Validate") {
 
   case class Person(name: String = "", books: Set[String] = Set(), salary: Int = 0)
-
 
   property("maxLengthString") = forAll { (name: String) =>
     val maxLength = 5

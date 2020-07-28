@@ -1,10 +1,10 @@
-package scalaz
+package scalaz.kleisli_usage
 
-import Scalaz._
+import scalaz.Scalaz._
 import Validate._
+import scalaz.{Applicative, Kleisli}
 
 import scala.util.Either.RightProjection
-
 
 object Usage {
 
@@ -151,10 +151,10 @@ object Usage {
 
     val result2: Either[Exception, Int] = avgSalaryWithLogging(List(validPerson, validPerson2, invalidPerson))
     println(result2)
-    assert(s"Left(scalaz.ValidationException: Length on name was 42 but it must be less or equal to 20 for $invalidPerson)" == result2.toString)
+    assert(s"Left(scalaz.kleisli_usage.ValidationException: Length on name was 42 but it must be less or equal to 20 for $invalidPerson)" == result2.toString)
 
     val result3: Either[Exception, Int] = avgSalaryWithLogging(List())
-    assert("Left(scalaz.Usage$AvgException$1: Avg on empty list)" == result3.toString)
+    assert("Left(scalaz.kleisli_usage.Usage$AvgException$1: Avg on empty list)" == result3.toString)
 
   }
 
