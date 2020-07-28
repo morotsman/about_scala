@@ -104,17 +104,17 @@ object Usage {
   }
 
   private def validatorExample() = {
-    val max21: Validator[Person, String] = maxLengthString[Person](21)
+    val max21: Validator[Person, String] = maxLengthString[Person](20)
     val tmp: FieldValidator[Person] = max21.on("name")
 
-    val tmp2: FieldValidator[Person] = maxLengthString[Person](21).on("name")
+    val tmp2: FieldValidator[Person] = maxLengthString[Person](20).on("name")
 
     val personValidator =
-      Validate[Person](maxLengthString(21) on "name") >==>
+      Validate[Person](maxLengthString(20) on "name") >==>
         (minLengthString(0) on "name") >==>
-        (maxValue(121) on "age") >==>
+        (maxValue(120) on "age") >==>
         (minValue(0) on "age") >==>
-        (maxLengthString(21) on "city") >==>
+        (maxLengthString(20) on "city") >==>
         (minLengthString(0) on "city") >==>
         (minLength[Set[_]](0) on "books") >==>
         (maxLength[Set[_]](1000) on "books") >==>
@@ -157,7 +157,7 @@ object Usage {
     assert(Right(65000) == result1)
 
     val result2: Either[Exception, Int] = avgSalaryWithLogging(List(validPerson, validPerson2, invalidPerson))
-    assert("Left(scalaz.ValidationException: Length on name was 42 but it must be less then 21 on Person(NiklasNiklasNiklasNiklasNiklasNiklasNiklas,47,Malmö,Set(Programing in Scala),500000))" == result2.toString)
+    assert("Left(scalaz.ValidationException: Length on name was 42 but it must be less then 20 on Person(NiklasNiklasNiklasNiklasNiklasNiklasNiklas,47,Malmö,Set(Programing in Scala),500000))" == result2.toString)
 
     val result3: Either[Exception, Int] = avgSalaryWithLogging(List())
     assert("Left(scalaz.Usage$AvgException$1: Avg on empty list)" == result3.toString)
