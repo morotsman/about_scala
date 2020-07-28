@@ -18,13 +18,13 @@ object Usage {
 
   private def basicUsage() = {
     val books = Set("Programing in Scala")
-    val validPerson = Person("Niklas", 47, "Malmö", books, 50000)
-    val invalidPerson = Person("NiklasNiklasNiklasNiklasNiklasNiklasNiklas", 47, "Malmö", books, 500000)
+    val validPerson = Person("Niklas", "Malmö", books, 50000)
+    val invalidPerson = Person("NiklasNiklasNiklasNiklasNiklasNiklasNiklas", "Malmö", books, 500000)
 
     def personValidator1(p: Person): Either[String, Person] =
-      nameValidator(p).flatMap(ageValidator).flatMap(cityValidator)
+      nameValidator(p).flatMap(salaryValidator).flatMap(cityValidator)
 
-    assert(Right(Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000)) == personValidator1(validPerson))
+    assert(Right(validPerson) == personValidator1(validPerson))
     assert(Left("Name failed the validation") == personValidator1(invalidPerson))
 
     def addOne(i: Int): Int = i + 1
@@ -42,39 +42,33 @@ object Usage {
     // val composedFunction3 = (nameValidator _).andThen(ageValidator) // will not compile, the types don't line up
 
     // andThen
-    val personValidator2 = Kleisli(nameValidator) >=> Kleisli(ageValidator) >=> Kleisli(cityValidator)
-    assert(Right(Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000)) == personValidator2(validPerson))
+    val personValidator2 = Kleisli(nameValidator) >=> Kleisli(salaryValidator) >=> Kleisli(cityValidator)
+    assert(Right(validPerson) == personValidator2(validPerson))
     assert(Left("Name failed the validation") == personValidator2(invalidPerson))
   }
 
-  case class Person(name: String, age: Int, city: String, books: Set[String], salary: Int)
+  case class Person(name: String, city: String, books: Set[String], salary: Int)
 
   def nameValidator(p: Person): Either[String, Person] =
     if (p.name.length > 0 && p.name.length < 21) Right(p) else Left("Name failed the validation")
-
-  def ageValidator(p: Person): Either[String, Person] =
-    if (p.age > 0 && p.age < 121) Right(p) else Left("Age failed the validation")
 
   def cityValidator(p: Person): Either[String, Person] =
     if (p.city.length > 0 && p.city.length < 21) Right(p) else Left("City failed the validation")
 
   def salaryValidator(p: Person): Either[String, Person] =
-    if (p.salary > 0 && p.salary < 20000) Right(p) else Left("Salary failed the validation")
+    if (p.salary > 0 && p.salary < 100000) Right(p) else Left("Salary failed the validation")
 
   private def kleisliUsage() = {
     val books = Set("Programing in Scala")
-    val validPerson = Person("Niklas", 47, "Malmö", books, 50000)
-    val invalidPerson = Person("NiklasNiklasNiklasNiklasNiklasNiklasNiklas", 47, "Malmö", books, 500000)
+    val validPerson = Person("Niklas", "Malmö", books, 150000)
+    val invalidPerson = Person("NiklasNiklasNiklasNiklasNiklasNiklasNiklas", "Malmö", books, 500000)
 
-    val personValidator = Kleisli(nameValidator) >==> ageValidator >==> cityValidator
-    assert(Right(Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000)) == personValidator(validPerson))
+    val personValidator = Kleisli(nameValidator) >==> cityValidator
+    assert(Right(validPerson) == personValidator(validPerson))
 
     // traverse
     assert(
-      Right(List(
-        Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000),
-        Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000)
-      )) == personValidator.traverse(List(validPerson, validPerson))
+      Right(List(validPerson, validPerson)) == personValidator.traverse(List(validPerson, validPerson))
     )
     assert(Left("Name failed the validation") == personValidator.traverse(List(validPerson, validPerson, invalidPerson)))
 
@@ -83,11 +77,11 @@ object Usage {
 
     // mapT && mapK
     val optionValidator = personValidator.mapT((ep: Either[String, Person]) => if (ep.isRight) Option(ep.right) else None)
-    assert(Some(RightProjection(Right(Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000)))) == optionValidator(validPerson))
+    assert(Some(RightProjection(Right(validPerson))) == optionValidator(validPerson))
 
     // flatMapK
     val validator = personValidator.flatMapK((p: Person) => Right(p))
-    assert((validator(validPerson) == Right(Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000))))
+    assert((validator(validPerson) == Right(validPerson)))
     // personValidator3.flatMapK(p => Option(p)) // will not compile
 
     // flatMap
@@ -96,7 +90,7 @@ object Usage {
 
     // lift
     val result = personValidator.lift(Applicative[List])
-    assert(List(Right(Person("Niklas", 47, "Malmö", Set("Programing in Scala"), 50000))) == result(validPerson))
+    assert(List(Right(validPerson)) == result(validPerson))
 
     // transform
 
@@ -112,13 +106,12 @@ object Usage {
     val personValidator =
       Validate[Person](maxLengthString(20) on "name") >==>
         (minLengthString(0) on "name") >==>
-        (maxValue(120) on "age") >==>
-        (minValue(0) on "age") >==>
         (maxLengthString(20) on "city") >==>
         (minLengthString(0) on "city") >==>
         (minLength[Set[_]](0) on "books") >==>
         (maxLength[Set[_]](1000) on "books") >==>
-        (minValue(0) on "salary")
+        (minValue(0) on "salary") >==>
+        (maxValue(100000) on "salary")
 
     def logInput(lp: List[Person]): Either[Exception, List[Person]] = {
       println(s"Will calculate the avg salary for ${lp.size} persons")
@@ -148,16 +141,17 @@ object Usage {
     val avgSalaryWithLogging = Kleisli(logInput) >==> avgSalary >==> logSuccess
 
     val books = Set("Programing in Scala")
-    val validPerson = Person("Niklas", 47, "Malmö", books, 50000)
-    val validPerson2 = Person("Niklas", 47, "Malmö", books, 80000)
-    val invalidPerson = Person("NiklasNiklasNiklasNiklasNiklasNiklasNiklas", 47, "Malmö", books, 500000)
+    val validPerson = Person("Niklas", "Malmö", books, 50000)
+    val validPerson2 = Person("Niklas", "Malmö", books, 80000)
+    val invalidPerson = Person("NiklasNiklasNiklasNiklasNiklasNiklasNiklas", "Malmö", books, 500000)
 
     val result1: Either[Exception, Int] = avgSalaryWithLogging(List(validPerson, validPerson2))
     println(result1)
     assert(Right(65000) == result1)
 
     val result2: Either[Exception, Int] = avgSalaryWithLogging(List(validPerson, validPerson2, invalidPerson))
-    assert("Left(scalaz.ValidationException: Length on name was 42 but it must be less then 20 on Person(NiklasNiklasNiklasNiklasNiklasNiklasNiklas,47,Malmö,Set(Programing in Scala),500000))" == result2.toString)
+    println(result2)
+    assert(s"Left(scalaz.ValidationException: Length on name was 42 but it must be less or equal to 20 for $invalidPerson)" == result2.toString)
 
     val result3: Either[Exception, Int] = avgSalaryWithLogging(List())
     assert("Left(scalaz.Usage$AvgException$1: Avg on empty list)" == result3.toString)
