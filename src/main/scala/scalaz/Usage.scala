@@ -104,10 +104,10 @@ object Usage {
   }
 
   private def validatorExample() = {
-    val max21 = maxLengthString[Person](21)
-    val tmp: Validator[Person] = max21.on("name")
+    val max21: Validator[Person, String] = maxLengthString[Person](21)
+    val tmp: FieldValidator[Person] = max21.on("name")
 
-    val tmp2: Validator[Person] = maxLengthString[Person](21).on("name")
+    val tmp2: FieldValidator[Person] = maxLengthString[Person](21).on("name")
 
     val personValidator =
       Validate[Person](maxLengthString(21) on "name") >==>

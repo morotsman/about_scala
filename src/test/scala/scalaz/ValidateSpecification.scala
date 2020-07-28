@@ -13,7 +13,7 @@ object ValidateSpecification extends Properties("Validate") {
   property("maxLengthString") = forAll { (name: String) =>
     val maxLength = 5
     val field = "name"
-    val validator: Validator[Person] = maxLengthString[Person](maxLength).on(field)
+    val validator: FieldValidator[Person] = maxLengthString[Person](maxLength).on(field)
     val person = Person(name)
 
     val result = validator(person)
