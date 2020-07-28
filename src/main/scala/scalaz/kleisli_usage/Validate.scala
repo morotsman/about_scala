@@ -36,7 +36,7 @@ object Validate {
       )
   }
 
-  // "curry" the type parameters to enable type inference on second type parameter
+  // "curry" the type parameters to enable type inference on second type parameter (the type of the object that we should validate)
   def minLength[FT <: Any {def size: Int}] = new MinLengthHelper[FT]
 
   final class MaxLengthHelper[FT <: Any {def size: Int}] {
