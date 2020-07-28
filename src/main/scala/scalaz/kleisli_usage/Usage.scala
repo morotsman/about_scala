@@ -106,7 +106,14 @@ object Usage {
       (minLength[Set[_]](0) on "books") >==>
       (maxLength[Set[_]](1000) on "books") >==>
       (minValue(0) on "salary") >==>
-      (maxValue(100000) on "salary")
+      (maxValue(100000) on "salary") >==>
+      (setContains("Programing in Scala") on "books")
+
+  def setContains[T](title: String): Validator[T, Set[String]] =
+    Validator[T, Set[String]](
+      s => s.contains(title),
+      (t, v, f) => s"The set did not contain $title for $t"
+    )
 
   private def validatorExample(): Unit = {
     val max21: Validator[Person, String] = maxLengthString[Person](20)
