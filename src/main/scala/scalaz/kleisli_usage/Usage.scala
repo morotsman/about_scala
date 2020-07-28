@@ -1,8 +1,8 @@
 package scalaz.kleisli_usage
 
-import scalaz.Scalaz._
 import Validate._
 import scalaz.{Applicative, Kleisli}
+import scalaz.std.AllInstances._
 
 import scala.util.Either.RightProjection
 
