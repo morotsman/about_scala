@@ -104,18 +104,21 @@ object Usage {
   }
 
   private def validatorExample() = {
-    val tmp: Validator[Person] = maxLengthString[Person]("name", 21)
+    val max21 = maxLengthString[Person](21)
+    val tmp: Validator[Person] = max21.on("name")
+
+    val tmp2: Validator[Person] = maxLengthString[Person](21).on("name")
 
     val personValidator =
-      Validate[Person](maxLengthString("name", 21)) >==>
-        minLengthString("name", 0) >==>
-        maxValue("age", 121) >==>
-        minValue("age", 0) >==>
-        maxLengthString("city", 21) >==>
-        minLengthString("city", 0) >==>
-        minLength[Set[_]]("books", 0) >==>
-        maxLength[Set[_]]("books", 1000) >==>
-        minValue("salary", 0)
+      Validate[Person](maxLengthString(21) on "name") >==>
+        (minLengthString(0) on "name") >==>
+        (maxValue(121) on "age") >==>
+        (minValue(0) on "age") >==>
+        (maxLengthString(21) on "city") >==>
+        (minLengthString(0) on "city") >==>
+        (minLength[Set[_]](0) on "books") >==>
+        (maxLength[Set[_]](1000) on "books") >==>
+        (minValue(0) on "salary")
 
     def logInput(lp: List[Person]): Either[Exception, List[Person]] = {
       println(s"Will calculate the avg salary for ${lp.size} persons")
@@ -158,6 +161,7 @@ object Usage {
 
     val result3: Either[Exception, Int] = avgSalaryWithLogging(List())
     assert("Left(scalaz.Usage$AvgException$1: Avg on empty list)" == result3.toString)
+
   }
 
 }
