@@ -112,7 +112,7 @@ object Usage {
   def setContains[T](title: String): Validator[T, Set[String]] =
     Validator[T, Set[String]](
       s => s.contains(title),
-      (t, v, f) => s"The set did not contain $title for $t"
+      (t, v, f) => s"The set did not contain $title: $t"
     )
 
   private def validatorExample(): Unit = {
