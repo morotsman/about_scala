@@ -9,8 +9,10 @@ final case class ValidationException(message: String) extends Exception(message)
 
 object Validate {
 
+  type FieldValidator[T] = Kleisli[({type f[x] = Either[ValidationException, x]})#f, T, T]
+
   // alias for Kleisli
-  def apply[T]: Kleisli[({type f[x] = Either[ValidationException, x]})#f, T, T] =
+  def apply[T]: FieldValidator[T] =
     Kleisli(t => Right(t))
 
   def maxLengthString[T](max: Int): Validator[T, String] =
@@ -59,17 +61,15 @@ object Validate {
       (t, v, f) => s"Value on $f was $v but it must be greater or equal to $min for $t"
     )
 
-  type FieldValidator[T] = T => Either[ValidationException, T]
-
   final case class Validator[T, FT](op: FT => Boolean, errorMessage: (T, FT, String) => String) {
     def on(fieldName: String)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T], ctf: ClassTag[FT], ttf: TypeTag[FT]): FieldValidator[T] = {
       validateField(fieldName)
-      (t: T) => {
+      Kleisli((t: T) => {
         for {
           value <- getValue(t, fieldName)
           result <- if (op(value)) Right(t) else Left(ValidationException(errorMessage(t, value, fieldName)))
         } yield result
-      }
+      })
     }
 
     private def validateField(field: String)(implicit m: Manifest[T]): Unit = {

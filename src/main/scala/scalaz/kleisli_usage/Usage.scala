@@ -166,15 +166,15 @@ object Usage {
   val max20: Validator[Person, String] = maxLengthString(20)
 
   private val personValidator =
-    Validate[Person] >==>
-      (maxLengthString(20) on "name") >==>
-      (minLengthString(0) on "name") >==>
-      (maxLengthString(20) on "city") >==>
-      (minLengthString(0) on "city") >==>
-      (minLength[Set[_]](0) on "books") >==>
-      (maxLength[Set[_]](1000) on "books") >==>
-      (minValue(0) on "salary") >==>
-      (maxValue(100000) on "salary") >==>
+    Validate[Person] >=>
+      (maxLengthString(20) on "name") >=>
+      (minLengthString(0) on "name") >=>
+      (maxLengthString(20) on "city") >=>
+      (minLengthString(0) on "city") >=>
+      (minLength[Set[_]](0) on "books") >=>
+      (maxLength[Set[_]](1000) on "books") >=>
+      (minValue(0) on "salary") >=>
+      (maxValue(100000) on "salary") >=>
       (setContains("Programing in Scala") on "books")
 
   def setContains[T](title: String): Validator[T, Set[String]] =

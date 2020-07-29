@@ -46,7 +46,7 @@ object ValidateSpecification extends Properties("Validate") {
     val field = "name"
     val minValidator = minLengthString[Person](minLength).on(field)
     val maxValidator = maxLengthString[Person](maxLength).on(field)
-    val validate = Validate[Person] >==> minValidator >==> maxValidator
+    val validate = Validate[Person] >=> minValidator >=> maxValidator
     val person = Person(name)
 
     val result = validate(person)
