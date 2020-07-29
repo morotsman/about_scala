@@ -93,11 +93,17 @@ object Usage {
      */
     Kleisli(nameValidator) >=> Kleisli(salaryValidator)
 
-
     val substitutedValidator = Kleisli((a: Person) => b.bind(Kleisli(nameValidator)(a))(Kleisli(salaryValidator).run))
 
     assert(Right(validPerson) == substitutedValidator(validPerson))
     assert(Left("Name failed the validation") == substitutedValidator(invalidPerson))
+
+    val substitutedValidator2 = Kleisli((a: Person) => b.bind(nameValidator(a))(salaryValidator))
+
+    assert(Right(validPerson) == substitutedValidator2(validPerson))
+    assert(Left("Name failed the validation") == substitutedValidator2(invalidPerson))
+
+    assert(Right(validPerson) == b.bind(nameValidator(validPerson))(salaryValidator))
 
   }
 
@@ -156,6 +162,8 @@ object Usage {
 
 
   }
+
+  val max20: Validator[Person, String] = maxLengthString(20)
 
   private val personValidator =
     Validate[Person] >==>
