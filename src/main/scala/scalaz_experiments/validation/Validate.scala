@@ -1,4 +1,4 @@
-package scalaz.kleisli_usage
+package scalaz_experiments.validation
 
 import scalaz.Kleisli
 
@@ -15,22 +15,22 @@ object Validate {
   def apply[T]: FieldValidator[T] =
     Kleisli(t => Right(t))
 
-  def maxLengthString[T](max: Int): Validator[T, String] =
-    Validator[T, String](
+  def maxLengthString[T](max: Int): Validator[String] =
+    Validator[String](
       v => v.length <= max,
       (t, v, f) => s"Length on $f was ${v.length} but it must be less or equal to $max for $t"
     )
 
   // TODO For some reason FT <: Any {def size: Int} doesn't work with String, revisit this when you know more!
-  def minLengthString[T](min: Int): Validator[T, String] =
-    Validator[T, String](
+  def minLengthString[T](min: Int): Validator[String] =
+    Validator[String](
       v => v.length >= min,
       (t, v, f) => s"Length on $f was ${v.length} but it must be greater or equal to $min for $t"
     )
 
   final class MinLengthHelper[FT <: Any {def size: Int}] {
-    def apply[T](min: Int): Validator[T, FT] =
-      Validator[T, FT](
+    def apply[T](min: Int): Validator[FT] =
+      Validator[FT](
         v => v.size >= min,
         (t, v, f) => s"Length on $f was ${v.size} but it must be greater or equal to $min for $t"
       )
@@ -40,8 +40,8 @@ object Validate {
   def minLength[FT <: Any {def size: Int}] = new MinLengthHelper[FT]
 
   final class MaxLengthHelper[FT <: Any {def size: Int}] {
-    def apply[T](max: Int): Validator[T, FT] =
-      Validator[T, FT](
+    def apply[T](max: Int): Validator[FT] =
+      Validator[FT](
         v => v.size <= max,
         (t, v, f) => s"Length on $f was ${v.size} but it must be less or equal to $max for $t"
       )
@@ -49,35 +49,41 @@ object Validate {
 
   def maxLength[FT <: Any {def size: Int}] = new MaxLengthHelper[FT]
 
-  def maxValue[T](max: Int): Validator[T, Integer] =
-    Validator[T, Integer](
+  def maxValue[T](max: Int): Validator[Integer] =
+    Validator[Integer](
       v => v <= max,
       (t, v, f) => s"Value on $f was $v but it must be less or equal to $max for $t"
     )
 
-  def minValue[T](min: Int): Validator[T, Integer] =
-    Validator[T, Integer](
+  def minValue[T](min: Int): Validator[Integer] =
+    Validator[Integer](
       value => value >= min,
       (t, v, f) => s"Value on $f was $v but it must be greater or equal to $min for $t"
     )
 
-  final case class Validator[T, FT](op: FT => Boolean, errorMessage: (T, FT, String) => String) {
-    def on(fieldName: String)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T], ctf: ClassTag[FT], ttf: TypeTag[FT]): FieldValidator[T] = {
+  final case class Validator[FT](op: FT => Boolean, errorMessage: (String, FT, String) => String) {
+    def on[T](fieldName: String)(implicit ct: ClassTag[T], tt: TypeTag[T], m: Manifest[T], ctf: ClassTag[FT], ttf: TypeTag[FT]): FieldValidator[T] = {
       validateField(fieldName)
       Kleisli((t: T) => {
         for {
           value <- getValue(t, fieldName)
-          result <- if (op(value)) Right(t) else Left(ValidationException(errorMessage(t, value, fieldName)))
+          result <- if (op(value)) Right(t) else Left(ValidationException(errorMessage(t.toString, value, fieldName)))
         } yield result
       })
     }
 
-    private def validateField(field: String)(implicit m: Manifest[T]): Unit = {
+    def &&(v: Validator[FT])(errorMessage: (String, FT, String) => String): Validator[FT] =
+      Validator(ft => this.op(ft) && v.op(ft), errorMessage)
+
+    def ||(v: Validator[FT])(errorMessage: String): Validator[FT] =
+      Validator(ft => this.op(ft) || v.op(ft), (_,_,_) => errorMessage)
+
+    private def validateField[T](field: String)(implicit m: Manifest[T]): Unit = {
       val fieldExists = manifest[T].runtimeClass.getMethods.exists(m => m.getName == field)
       if (!fieldExists) throw new RuntimeException(s"Could not find a field called $field")
     }
 
-    private def getValue(obj: T, field: String)(implicit ct: ClassTag[T], tt: TypeTag[T], ct1: ClassTag[FT], tt1: TypeTag[FT]): Either[ValidationException, FT] = {
+    private def getValue[T](obj: T, field: String)(implicit ct: ClassTag[T], tt: TypeTag[T], ct1: ClassTag[FT], tt1: TypeTag[FT]): Either[ValidationException, FT] = {
       try {
         val symbol = typeOf[T].member(TermName(field)).asMethod
         val m = runtimeMirror(obj.getClass.getClassLoader)

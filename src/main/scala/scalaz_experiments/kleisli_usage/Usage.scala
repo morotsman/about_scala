@@ -1,9 +1,7 @@
-package scalaz.kleisli_usage
+package scalaz_experiments.kleisli_usage
 
-import Validate._
 import scalaz._
 import Scalaz._
-import scalaz.Kleisli.kleisli
 
 import scala.util.Either.RightProjection
 
@@ -13,8 +11,6 @@ object Usage {
     basicUsage()
 
     kleisliUsage()
-
-    validatorExample()
   }
 
   private def basicUsage(): Unit = {
@@ -160,77 +156,6 @@ object Usage {
 
     // transform
 
-
-  }
-
-  val max20: Validator[Person, String] = maxLengthString(20)
-
-  private val personValidator =
-    Validate[Person] >=>
-      (maxLengthString(20) on "name") >=>
-      (minLengthString(0) on "name") >=>
-      (maxLengthString(20) on "city") >=>
-      (minLengthString(0) on "city") >=>
-      (minLength[Set[_]](0) on "books") >=>
-      (maxLength[Set[_]](1000) on "books") >=>
-      (minValue(0) on "salary") >=>
-      (maxValue(100000) on "salary") >=>
-      (setContains("Programing in Scala") on "books")
-
-  def setContains[T](title: String): Validator[T, Set[String]] =
-    Validator[T, Set[String]](
-      s => s.contains(title),
-      (t, v, f) => s"The set did not contain $title: $t"
-    )
-
-  private def validatorExample(): Unit = {
-    val max21: Validator[Person, String] = maxLengthString[Person](20)
-    val tmp: FieldValidator[Person] = max21.on("name")
-
-    val tmp2: FieldValidator[Person] = maxLengthString[Person](20).on("name")
-
-    def logInput(lp: List[Person]): Either[Exception, List[Person]] = {
-      println(s"Will calculate the avg salary for ${lp.size} persons")
-      Right(lp)
-    }
-
-    def validatePersons(lp: List[Person]): Either[Exception, List[Person]] =
-      personValidator traverse lp
-
-    final case class AvgException(message: String) extends Exception(message)
-
-    def calculateAvgSalary(lp: List[Person]): Either[Exception, Int] =
-      if (lp.isEmpty) {
-        Left(AvgException("Avg on empty list"))
-      } else {
-        val (tot, sum) = lp.map(_.salary).foldLeft((0, 0))((acc, s) => (acc._1 + 1, acc._2 + s))
-        Right(sum / tot)
-      }
-
-    def logSuccess(salary: Int): Either[Exception, Int] = {
-      println(s"The avarage salery is: $salary")
-      Right(salary)
-    }
-
-    val avgSalary = Kleisli(validatePersons) >==> calculateAvgSalary
-
-    val avgSalaryWithLogging = Kleisli(logInput) >==> avgSalary >==> logSuccess
-
-    val books = Set("Programing in Scala")
-    val validPerson = Person("Niklas", "Malmö", books, 50000)
-    val validPerson2 = Person("Niklas", "Malmö", books, 80000)
-    val invalidPerson = Person("NiklasNiklasNiklasNiklasNiklasNiklasNiklas", "Malmö", books, 500000)
-
-    val result1: Either[Exception, Int] = avgSalaryWithLogging(List(validPerson, validPerson2))
-    println(result1)
-    assert(Right(65000) == result1)
-
-    val result2: Either[Exception, Int] = avgSalaryWithLogging(List(validPerson, validPerson2, invalidPerson))
-    println(result2)
-    assert(s"Left(scalaz.kleisli_usage.ValidationException: Length on name was 42 but it must be less or equal to 20 for $invalidPerson)" == result2.toString)
-
-    val result3: Either[Exception, Int] = avgSalaryWithLogging(List())
-    assert("Left(scalaz.kleisli_usage.Usage$AvgException$1: Avg on empty list)" == result3.toString)
 
   }
 

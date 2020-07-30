@@ -1,4 +1,4 @@
-package scalaz
+package scalaz_experiments
 
 class UnionTypes {
   // https://stackoverflow.com/questions/3508077/how-to-define-type-disjunction-union-types

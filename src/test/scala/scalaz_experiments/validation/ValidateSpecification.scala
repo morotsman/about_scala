@@ -1,10 +1,11 @@
-package scalaz.kleisli_usage
+package scalaz_experiments.validation
 
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
+import Validate._
 
-import scalaz.Scalaz._
-import scalaz.kleisli_usage.Validate._
+import scalaz._
+import Scalaz._
 
 object ValidateSpecification extends Properties("Validate") {
 
@@ -13,7 +14,7 @@ object ValidateSpecification extends Properties("Validate") {
   property("maxLengthString") = forAll { (name: String) =>
     val maxLength = 5
     val field = "name"
-    val validator: FieldValidator[Person] = maxLengthString[Person](maxLength).on(field)
+    val validator: FieldValidator[Person] = maxLengthString(maxLength).on[Person](field)
     val person = Person(name)
 
     val result = validator(person)
@@ -28,7 +29,7 @@ object ValidateSpecification extends Properties("Validate") {
   property("minLengthString") = forAll { (name: String) =>
     val minLength = 2
     val field = "name"
-    val validate = minLengthString[Person](minLength).on(field)
+    val validate = minLengthString(minLength).on[Person](field)
     val person = Person(name)
 
     val result = validate(person)
@@ -44,8 +45,8 @@ object ValidateSpecification extends Properties("Validate") {
     val minLength = 2
     val maxLength = 5
     val field = "name"
-    val minValidator = minLengthString[Person](minLength).on(field)
-    val maxValidator = maxLengthString[Person](maxLength).on(field)
+    val minValidator = minLengthString(minLength).on[Person](field)
+    val maxValidator = maxLengthString[Person](maxLength).on[Person](field)
     val validate = Validate[Person] >=> minValidator >=> maxValidator
     val person = Person(name)
 
@@ -63,7 +64,7 @@ object ValidateSpecification extends Properties("Validate") {
   property("minLength") = forAll { (books: Set[String]) =>
     val minSetLength = 2
     val field = "books"
-    val validate = minLength[Set[_]][Person](minSetLength).on(field)
+    val validate = minLength[Set[_]](minSetLength).on[Person](field)
     val person = Person(books = books)
 
     val result = validate(person)
@@ -78,7 +79,7 @@ object ValidateSpecification extends Properties("Validate") {
   property("maxLength") = forAll { (books: Set[String]) =>
     val maxSetLength = 5
     val field = "books"
-    val validate = maxLength[Set[_]][Person](maxSetLength).on(field)
+    val validate = maxLength[Set[_]](maxSetLength).on[Person](field)
     val person = Person(books = books)
 
     val result = validate(person)
@@ -93,7 +94,7 @@ object ValidateSpecification extends Properties("Validate") {
   property("maxValue") = forAll { (salary: Int) =>
     val maxSalary = 3
     val field = "salary"
-    val validate = maxValue[Person](maxSalary).on(field)
+    val validate = maxValue(maxSalary).on[Person](field)
     val person = Person(salary = salary)
 
     val result = validate(person)
@@ -108,7 +109,7 @@ object ValidateSpecification extends Properties("Validate") {
   property("minValue") = forAll { (salary: Int) =>
     val minSalary = 3
     val field = "salary"
-    val validate = minValue[Person](minSalary).on(field)
+    val validate = minValue(minSalary).on[Person](field)
     val person = Person(salary = salary)
 
     val result = validate(person)
@@ -124,7 +125,7 @@ object ValidateSpecification extends Properties("Validate") {
     val minSalary = 3
 
     try {
-      val validator = minValue[Person](minSalary).on(name)
+      val validator = minValue(minSalary).on[Person](name)
       false
     } catch {
       case e: RuntimeException => true
@@ -135,7 +136,7 @@ object ValidateSpecification extends Properties("Validate") {
   property("wrong type on field") = forAll { (salary: Int) =>
     val minSalary = 3
     val field = "name"
-    val validate = minValue[Person](minSalary).on(field)
+    val validate = minValue(minSalary).on[Person](field)
 
     val person = Person(salary = salary)
 
