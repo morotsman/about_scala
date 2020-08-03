@@ -6,16 +6,6 @@ import scalaz._
 import Validator._
 
 object ValidateMonad {
-
-  implicit val validationMonad: Monad[Validated] = new Monad[Validated] {
-    override def point[A](a: => A): Validated[A] = Valid(a)
-
-    override def bind[A, B](fa: Validated[A])(f: A => Validated[B]): Validated[B] = fa match {
-      case Valid(a) => f(a)
-      case Invalid(i) => Invalid(i)
-    }
-  }
-
   case class Person(name: String, age: Int)
 
   def validateName(name: String): Validated[String] =
