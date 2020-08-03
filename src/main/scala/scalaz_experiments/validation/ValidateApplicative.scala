@@ -3,19 +3,9 @@ package scalaz_experiments.validation
 import scalaz._
 import Scalaz._
 
+import Validator._
+
 object ValidateApplicative {
-
-  sealed trait Validator[+E, +T]
-
-  case class Valid[+T](t: T) extends Validator[Nothing, T]
-
-  case class Invalid[+E](es: Vector[E]) extends Validator[E, Nothing]
-
-  object Invalid {
-    def apply[E](e: E): Invalid[E] = Invalid(Vector(e))
-  }
-
-  type Validated[T] = Validator[String, T]
 
   implicit val validationApplicative: Applicative[Validated] = new Applicative[Validated] {
     override def point[A](a: => A): Validated[A] = Valid(a)
