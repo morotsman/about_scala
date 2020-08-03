@@ -64,10 +64,9 @@ object ValidateMonad {
 
     println(person3)
 
-    val result = (validateName("Niklas") |@| validateAge(30)) { (name: String, age: Int) => Person(name, age)}
+    val result = (validateName("Niklas") |@| validateAge(30)) { (name: String, age: Int) => Person(name, age) }
 
     println(result)
-
 
 
   }
