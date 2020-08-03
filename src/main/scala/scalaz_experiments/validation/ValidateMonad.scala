@@ -6,6 +6,7 @@ import scalaz._
 import Validator._
 
 object ValidateMonad {
+
   case class Person(name: String, age: Int)
 
   def validateName(name: String): Validated[String] =
@@ -44,10 +45,16 @@ object ValidateMonad {
 
     println(person3)
 
-    val result = (validateName("Niklas") |@| validateAge(30)) { (name: String, age: Int) => Person(name, age) }
+    val person4 = (validateName("Niklas") |@| validateAge(30)) { (name: String, age: Int) => Person(name, age) }
 
-    println(result)
+    println(person4)
 
+    val person5 = for {
+      name <- validateName("Niklas")
+      age <- validateAge(35)
+    } yield (Person(name, age))
+
+    println(person5)
 
   }
 
