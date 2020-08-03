@@ -1,9 +1,9 @@
 package scalaz_experiments.validation
 
+import scalaz.Scalaz._
 import scalaz._
-import Scalaz._
 
-object ValidateApplicative {
+object ValidateMonad {
 
   sealed trait Validator[+E, +T]
 
@@ -17,14 +17,12 @@ object ValidateApplicative {
 
   type Validated[T] = Validator[String, T]
 
-  implicit val validationApplicative: Applicative[Validated] = new Applicative[Validated] {
+  implicit val validationMonad: Monad[Validated] = new Monad[Validated] {
     override def point[A](a: => A): Validated[A] = Valid(a)
 
-    override def ap[A, B](fa: => Validated[A])(f: => Validated[A => B]): Validated[B] = (fa, f) match {
-      case (Valid(a), Valid(fab)) => Valid(fab(a))
-      case (Valid(a), Invalid(es)) => Invalid(es)
-      case (Invalid(es), Valid(a)) => Invalid(es)
-      case (Invalid(es1), Invalid(es2)) => Invalid(es1 ++ es2)
+    override def bind[A, B](fa: Validated[A])(f: A => Validated[B]): Validated[B] = fa match {
+      case Valid(a) => f(a)
+      case Invalid(i) => Invalid(i)
     }
   }
 
@@ -39,7 +37,7 @@ object ValidateApplicative {
     else Invalid("Age failed the validation")
 
   def main(args: Array[String]): Unit = {
-    val validator = Applicative[Validated]
+    val validator = Monad[Validated]
 
     val person1 = validator.apply2(validateName("NiklasNiklasNiklasNiklasNiklasNiklas"), validateAge(-1)) { (name, age) =>
       Person(name, age)
