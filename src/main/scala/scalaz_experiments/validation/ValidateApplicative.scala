@@ -4,6 +4,7 @@ import scalaz._
 import Scalaz._
 
 import Validator._
+import ValidatorApplicative._
 
 object ValidateApplicative {
   case class Person(name: String, age: Int)
@@ -47,8 +48,6 @@ object ValidateApplicative {
     val result = (validateName("Niklas") |@| validateAge(30)) { (name: String, age: Int) => Person(name, age)}
 
     println(result)
-
-
 
   }
 

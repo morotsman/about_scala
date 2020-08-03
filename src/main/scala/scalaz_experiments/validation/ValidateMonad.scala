@@ -4,6 +4,7 @@ import scalaz.Scalaz._
 import scalaz._
 
 import Validator._
+import ValidatorMonad._
 
 object ValidateMonad {
 
