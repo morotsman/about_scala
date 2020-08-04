@@ -4,7 +4,6 @@ import scalaz.Scalaz._
 import scalaz._
 
 import Validator._
-import ValidatorMonad.validationBind
 import ValidatorMonad.validationMonad
 
 object ValidateKleisli {
