@@ -2,7 +2,6 @@ package scalaz_experiments.validation
 
 import scalaz._
 import Scalaz._
-
 import Validator._
 import ValidatorApplicative._
 

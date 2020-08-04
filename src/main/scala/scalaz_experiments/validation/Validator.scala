@@ -1,6 +1,6 @@
 package scalaz_experiments.validation
 
-import scalaz.{Applicative, Monad}
+import scalaz.{Applicative, Bind, Monad}
 import scalaz_experiments.validation.Validator.Validated
 
 sealed trait Validator[+E, +T]
@@ -29,6 +29,18 @@ object ValidatorMonad {
     override def bind[A, B](fa: Validated[A])(f: A => Validated[B]): Validated[B] = fa match {
       case Valid(a) => f(a)
       case Invalid(i) => Invalid(i)
+    }
+  }
+
+  implicit val validationBind: Bind[Validated] = new Bind[Validated] {
+    override def bind[A, B](fa: Validated[A])(f: A => Validated[B]): Validated[B] = {
+      val m = implicitly[Monad[Validated]]
+      m.bind(fa)(f)
+    }
+
+    override def map[A, B](fa: Validated[A])(f: A => B): Validated[B] = {
+      val m = implicitly[Monad[Validated]]
+      m.map(fa)(f)
     }
   }
 }
