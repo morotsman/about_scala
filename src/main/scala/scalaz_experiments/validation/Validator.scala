@@ -9,6 +9,14 @@ object Validator {
   type Validated[T] = Validator[String, T]
 }
 
+case class Valid[+T](t: T) extends Validator[Nothing, T]
+
+case class Invalid[+E](es: Vector[E]) extends Validator[E, Nothing]
+
+object Invalid {
+  def apply[E](e: E): Invalid[E] = Invalid(Vector(e))
+}
+
 object ValidatorApplicative {
   implicit val validationApplicative: Applicative[Validated] = new Applicative[Validated] {
     override def point[A](a: => A): Validated[A] = Valid(a)
@@ -45,12 +53,6 @@ object ValidatorMonad {
   }
 }
 
-case class Valid[+T](t: T) extends Validator[Nothing, T]
 
-case class Invalid[+E](es: Vector[E]) extends Validator[E, Nothing]
-
-object Invalid {
-  def apply[E](e: E): Invalid[E] = Invalid(Vector(e))
-}
 
 
