@@ -65,15 +65,50 @@ object ValidateApplicative {
     val result11 = someTwo +++ someTwo +++ someTwo
     assert(result11 == Some(6))
 
+    // as semigroup is a monoid without zero
     implicit val times: Semigroup[Int] = new Semigroup[Int] {
       override def append(f1: Int, f2: => Int): Int = f1 * f2
     }
 
-    val result12 = Applicative[Option].plusA(someThree, someThree)(times)
+    val ao = Applicative[Option]
+    import ao._
+    val result12 = plusA(someThree, someThree)(times)
     assert(result12 == Some(9))
 
     val result13 = someThree.+++(someTwo)(times) +++ someTwo
     assert(result13 == Some(8))
+
+    assert(sequence(List(someOne, someTwo, someThree)) == Some(List(1, 2, 3)))
+    assert(sequence(List(None, someTwo, someThree)) == None)
+
+    def all(i: Int): Option[Int] = Some(i)
+
+    assert(traverse(List(1, 2, 3))(all) == Some(List(1, 2, 3)))
+
+    def onlyEven(i: Int): Option[Int] = if (i % 2 == 0) Some(i) else None
+
+    assert(traverse(List(1, 2, 3))(onlyEven) == None)
+    assert(traverse(List(2, 4))(onlyEven) == Some(List(2, 4)))
+
+    assert(Some(IList(1, 1, 1)) == replicateM(3, Some(1)))
+
+    def isEven(i: Int): Option[Boolean] = if (i % 2 == 0) Some(true) else None
+
+    assert(filterM(List(1, 2, 3))(isEven) == None)
+    assert(filterM(List(2, 4))(isEven) == Some(List(2, 4)))
+
+    val la = Applicative[List]
+    val lacao = la.compose(ao)
+
+    val listOfOptions = List(someOne, someTwo, None)
+    val result14 = lacao.map(listOfOptions)(a => a + 10)
+    assert(result14 == List(Some(11), Some(12), None))
+
+    val lapao = la.product(ao)
+
+    val result15 = lapao.map((List(1, 2), Some(2)))(a => a + 10)
+    assert(result15 == (List(11, 12), Some(12)))
+
   }
 
   def validatorExample(): Unit = {
