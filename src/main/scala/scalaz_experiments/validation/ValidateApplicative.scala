@@ -170,11 +170,18 @@ object ValidateApplicative {
   def validatorExample(): Unit = {
     val validator = Applicative[Validated]
 
-    val person1 = validator.apply2(validateName("NiklasNiklasNiklasNiklasNiklasNiklas"), validateAge(-1)) { (name, age) =>
+    val person0 = validator.apply2(validateName("NiklasNiklasNiklasNiklasNiklasNiklas"), validateAge(-1)) { (name, age) =>
       Person(name, age)
     }
 
-    assert(person1 == Invalid(Vector("Age failed the validation", "Name validation failed")))
+    assert(person0 == Invalid(Vector("Age failed the validation", "Name validation failed")))
+
+    val person1: Validated[Person] = ^(validateName("Niklas"), validateAge(27)) { (name, age) =>
+      Person(name, age)
+    }
+
+    assert(person1 == Valid(Person("Niklas", 27)))
+
 
     val person2: Validated[Person] = ^(validateName("NiklasNiklasNiklasNiklasNiklasNiklas"), validateAge(-1)) { (name, age) =>
       Person(name, age)

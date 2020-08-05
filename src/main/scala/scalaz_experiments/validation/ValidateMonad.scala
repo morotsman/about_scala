@@ -30,7 +30,7 @@ object ValidateMonad {
     val person2: Validated[Person] = ^(validateName("NiklasNiklasNiklasNiklasNiklasNiklas"), validateAge(-1)) { (name, age) =>
       Person(name, age)
     }
-
+    assert(person2 == Invalid(Vector("Name validation failed")))
     println(person2)
 
 
@@ -55,7 +55,17 @@ object ValidateMonad {
       age <- validateAge(35)
     } yield (Person(name, age))
 
+    assert(person5 == Valid(Person("Niklas",35)))
     println(person5)
+
+    val person6 = for {
+      name <- validateName("NiklasNiklasNiklasNiklasNiklasNiklasNiklas")
+      age <- validateAge(-2)
+    } yield (Person(name, age))
+
+    assert(person6 == Invalid(Vector("Name validation failed")))
+
+    println(person6)
 
   }
 
