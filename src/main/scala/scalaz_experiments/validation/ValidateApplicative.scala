@@ -156,8 +156,8 @@ object ValidateApplicative {
       val result1 = Await.result(futureResult1, 1000 millis)
       assert(result1 == List(1, 1, 1))
 
-      val futureResult2 : Future[List[Int]] =
-        sequence(List(successFuture, successFuture, failedFuture.recoverWith{ case _ => Future.successful(2)}))
+      val recoveredFuture = failedFuture.recoverWith{ case _ => Future.successful(2)}
+      val futureResult2 : Future[List[Int]] = sequence(List(successFuture, successFuture, recoveredFuture))
       val result2 = Await.result(futureResult2, 1000 millis)
       assert(result2 == List(1, 1, 2))
 
