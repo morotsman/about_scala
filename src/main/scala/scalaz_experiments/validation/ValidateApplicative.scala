@@ -1,9 +1,17 @@
 package scalaz_experiments.validation
 
+import java.util.concurrent.Executors
+
+import scala.concurrent.duration._
+import scala.language.postfixOps
 import scalaz._
 import Scalaz._
 import Validator._
 import ValidatorApplicative._
+
+
+
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, ExecutionContextExecutorService, Future}
 
 object ValidateApplicative {
 
@@ -18,8 +26,26 @@ object ValidateApplicative {
     else Invalid("Age failed the validation")
 
   def main(args: Array[String]): Unit = {
+    functor()
     basicExamples()
+    futureExample()
     validatorExample()
+  }
+
+  def functor(): Unit = {
+    def addOne(a: Int) = a + 1
+
+    val of = Functor[Option]
+    val result: Option[Int] = of.map(Some(3))(addOne)
+    assert(result == Some(4))
+
+    List(1, 2, 3).map(addOne)
+    Set(1, 2, 3).map(addOne)
+    Some(1).map(addOne)
+
+    val addOneLifted: Option[Int] => Option[Int] = of.lift(addOne)
+    val result2: Option[Int] = addOneLifted(Some(3))
+    assert(result2 == Some(4))
   }
 
   def basicExamples(): Unit = {
@@ -36,7 +62,6 @@ object ValidateApplicative {
     assert(result2 == Some(3))
 
     def addTwo(a: Int, b: Int): Int = a + b
-
 
     val result6 = someOne.map(a => someTwo.map(b => addTwo(a, b)))
     assert(result6 == Some(Some(3)))
@@ -109,6 +134,36 @@ object ValidateApplicative {
     val result15 = lapao.map((List(1, 2), Some(2)))(a => a + 10)
     assert(result15 == (List(11, 12), Some(12)))
 
+    val result16 = apply2(someOne, someTwo)(addTwo)
+    assert(result16 == Some(3))
+  }
+
+  def futureExample(): Unit = {
+
+
+    implicit val ctx: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(3))
+    try {
+      def successFuture = Future {
+        Thread.sleep(900)
+        1
+      }
+      val failedFuture = Future.failed(new RuntimeException("oops"))
+
+      val af = Applicative[Future]
+      import af._
+
+      val futureResult1 : Future[List[Int]] = sequence(List(successFuture, successFuture, successFuture))
+      val result1 = Await.result(futureResult1, 1000 millis)
+      assert(result1 == List(1, 1, 1))
+
+      val futureResult2 : Future[List[Int]] =
+        sequence(List(successFuture, successFuture, failedFuture.recoverWith{ case _ => Future.successful(2)}))
+      val result2 = Await.result(futureResult2, 1000 millis)
+      assert(result2 == List(1, 1, 2))
+
+    } finally {
+      ctx.shutdown()
+    }
   }
 
   def validatorExample(): Unit = {
@@ -135,7 +190,7 @@ object ValidateApplicative {
     )
     assert(person3 == Invalid(Vector("Name validation failed")))
 
-    val result = (validateName("Niklas") |@| validateAge(30)) { (name: String, age: Int) => Person(name, age) }
+    val result: Validated[Person] = (validateName("Niklas") |@| validateAge(30)) { (name: String, age: Int) => Person(name, age) }
     assert(result == Valid(Person("Niklas", 30)))
   }
 
