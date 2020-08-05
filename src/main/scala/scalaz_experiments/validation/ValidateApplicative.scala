@@ -15,15 +15,6 @@ import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Exec
 
 object ValidateApplicative {
 
-  case class Person(name: String, age: Int)
-
-  def validateName(name: String): Validated[String] =
-    if (name.length > 0 && name.length <= 21) Valid(name)
-    else Invalid("Name validation failed")
-
-  def validateAge(age: Int): Validated[Int] =
-    if (age >= 0) Valid(age)
-    else Invalid("Age failed the validation")
 
   def main(args: Array[String]): Unit = {
     functor()
@@ -167,30 +158,44 @@ object ValidateApplicative {
     }
   }
 
+  case class Person(name: String, age: Int, salery: Int)
+
+  def validateName(name: String): Validated[String] =
+    if (name.length > 0 && name.length <= 21) Valid(name)
+    else Invalid("Name validation failed")
+
+  def validateAge(age: Int): Validated[Int] =
+    if (age >= 0) Valid(age)
+    else Invalid("Age failed the validation")
+
+  def validateSalary(salary: Int): Validated[Int] =
+    if (salary > 10000) Valid(salary)
+    else Invalid("Salary failed the validation")
+
   def validatorExample(): Unit = {
     val validator = Applicative[Validated]
 
     val person0 = validator.apply2(validateName("NiklasNiklasNiklasNiklasNiklasNiklas"), validateAge(-1)) { (name, age) =>
-      Person(name, age)
+      Person(name, age, 20000)
     }
 
     assert(person0 == Invalid(Vector("Age failed the validation", "Name validation failed")))
 
     val person1: Validated[Person] = ^(validateName("Niklas"), validateAge(27)) { (name, age) =>
-      Person(name, age)
+      Person(name, age, 20000)
     }
 
-    assert(person1 == Valid(Person("Niklas", 27)))
+    assert(person1 == Valid(Person("Niklas", 27, 20000)))
 
 
     val person2: Validated[Person] = ^(validateName("NiklasNiklasNiklasNiklasNiklasNiklas"), validateAge(-1)) { (name, age) =>
-      Person(name, age)
+      Person(name, age, 20000)
     }
 
     assert(person2 == Invalid(Vector("Age failed the validation", "Name validation failed")))
 
     def createPerson(name: String, age: Int): Person =
-      Person(name, age)
+      Person(name, age, 20000)
 
     val person3: Validated[Person] = validator.lift2(createPerson)(
       validateName("NiklasNiklasNiklasNiklasNiklasNiklas"),
@@ -198,8 +203,11 @@ object ValidateApplicative {
     )
     assert(person3 == Invalid(Vector("Name validation failed")))
 
-    val result: Validated[Person] = (validateName("Niklas") |@| validateAge(30)) { (name: String, age: Int) => Person(name, age) }
-    assert(result == Valid(Person("Niklas", 30)))
+    val result: Validated[Person] = (validateName("Niklas") |@| validateAge(30) |@| validateSalary(30000)) { (name, age, salary) => Person(name, age, salary) }
+    assert(result == Valid(Person("Niklas", 30, 30000)))
+
+    val result2: Validated[Person] = (validateName("NiklasNiklasNiklasNiklasNiklasNiklasNiklas") |@| validateAge(-1) |@| validateSalary(-3)) { (name, age, salary) => Person(name, age, salary) }
+    assert(result2 == Invalid(Vector("Salary failed the validation", "Age failed the validation", "Name validation failed")))
   }
 
 }
