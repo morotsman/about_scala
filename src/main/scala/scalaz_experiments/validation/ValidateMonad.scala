@@ -67,6 +67,9 @@ object ValidateMonad {
 
     println(person6)
 
+    val person7 = validateName("Niklas").flatMap(name => validateAge(30).map(age => Person(name, age)))
+
+    println(person7)
   }
 
 }
