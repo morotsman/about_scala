@@ -39,8 +39,8 @@ object ValidatorSpecification extends Properties("Validate") {
     laws.identityAp(v)
   }
 
-  property("homomorphism Law") = forAll { (ab: String => Int, a: String) =>
-    laws.homomorphism(ab, a)
+  property("homomorphism Law") = forAll { (aTob: String => Int, a: String) =>
+    laws.homomorphism(aTob, a)
   }
 
   val validatorStringToIntGenerator: Gen[(String, Validated[String => Int])] = for {
@@ -50,7 +50,7 @@ object ValidatorSpecification extends Properties("Validate") {
   } yield (if (isValid) (s, Valid(f)) else (s, Invalid(s)))
 
   property("interchange Law") = forAll(validatorStringToIntGenerator) {
-    case (a, fab) => laws.interchange(fab, a)
+    case (a, faTob) => laws.interchange(faTob, a)
   }
 
   val generator: Gen[(Validated[String], String => Int)] = for {
@@ -60,7 +60,7 @@ object ValidatorSpecification extends Properties("Validate") {
   } yield (if (isValid) (Valid(s), f) else (Invalid(s), f))
 
   property("mapLikeDerived Law") = forAll(generator) {
-    case (a, fa) => laws.mapLikeDerived(fa, a)
+    case (fa, aTob) => laws.mapLikeDerived(aTob, fa)
   }
 
 }
