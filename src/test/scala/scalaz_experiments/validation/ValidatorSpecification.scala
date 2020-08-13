@@ -35,8 +35,8 @@ object ValidatorSpecification extends Properties("Validate") {
     v <- intGenerator
   } yield (if (isValid) Valid(v) else Invalid(message))
 
-  property("identityAp Law") = forAll(intValidatorGenerator) { (v: Validated[Int]) =>
-    laws.identityAp(v)
+  property("identityAp Law") = forAll(intValidatorGenerator) { (fa: Validated[Int]) =>
+    laws.identityAp(fa)
   }
 
   property("homomorphism Law") = forAll { (aTob: String => Int, a: String) =>
@@ -45,9 +45,9 @@ object ValidatorSpecification extends Properties("Validate") {
 
   val validatorStringToIntGenerator: Gen[(String, Validated[String => Int])] = for {
     isValid <- booleanGenerator
-    s <- stringGenerator
-    f <- stringToIntGen
-  } yield (if (isValid) (s, Valid(f)) else (s, Invalid(s)))
+    a <- stringGenerator
+    aTob <- stringToIntGen
+  } yield (if (isValid) (a, Valid(aTob)) else (a, Invalid(a)))
 
   property("interchange Law") = forAll(validatorStringToIntGenerator) {
     case (a, faTob) => laws.interchange(faTob, a)
@@ -55,9 +55,9 @@ object ValidatorSpecification extends Properties("Validate") {
 
   val generator: Gen[(Validated[String], String => Int)] = for {
     isValid <- booleanGenerator
-    s <- stringGenerator
-    f <- stringToIntGen
-  } yield (if (isValid) (Valid(s), f) else (Invalid(s), f))
+    a <- stringGenerator
+    aTob <- stringToIntGen
+  } yield (if (isValid) (Valid(a), aTob) else (Invalid(a), aTob))
 
   property("mapLikeDerived Law") = forAll(generator) {
     case (fa, aTob) => laws.mapLikeDerived(aTob, fa)
