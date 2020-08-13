@@ -23,8 +23,8 @@ object ValidatorApplicative {
 
     override def ap[A, B](fa: => Validated[A])(f: => Validated[A => B]): Validated[B] = (fa, f) match {
       case (Valid(a), Valid(fab)) => Valid(fab(a))
-      case (Valid(a), Invalid(es)) => Invalid(es)
-      case (Invalid(es), Valid(a)) => Invalid(es)
+      case (Valid(_), Invalid(es)) => Invalid(es)
+      case (Invalid(es), Valid(_)) => Invalid(es)
       case (Invalid(es1), Invalid(es2)) => Invalid(es1 ++ es2)
     }
   }
