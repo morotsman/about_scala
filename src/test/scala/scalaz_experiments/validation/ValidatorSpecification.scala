@@ -22,7 +22,7 @@ object ValidatorSpecification extends Properties("Validate") {
 
   private def validatedGen[A](implicit a: Arbitrary[A]): Gen[Validated[A]] = for {
     isValid <- Arbitrary.arbitrary[Boolean]
-    errors <- Gen.listOf[String](Gen.alphaLowerStr)
+    errors <- Gen.listOf[String](Arbitrary.arbitrary[String])
     a <- Arbitrary.arbitrary[A]
   } yield (if (isValid) Valid(a) else Invalid(errors.toVector))
 
