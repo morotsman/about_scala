@@ -9,10 +9,10 @@ import ValidatorApplicative._
 
 object ValidatorSpecification extends Properties("Validate") {
 
-  val applicative: Applicative[Validated] = Applicative[Validated]
-  val laws: applicative.ApplicativeLaw = applicative.applicativeLaw
+  private val applicative = Applicative[Validated]
+  private val laws = applicative.applicativeLaw
 
-  implicit def validatedApplicativeEquals[A]: Equal[Validated[A]] = new Equal[Validated[A]] {
+  private implicit def validatedApplicativeEquals[A]: Equal[Validated[A]] = new Equal[Validated[A]] {
     override def equal(a1: Validated[A], a2: Validated[A]): Boolean = (a1, a2) match {
       case (Invalid(m1), Invalid(m2)) => m1 == m2
       case (Valid(a1), Valid(a2)) => a1 == a2
@@ -20,7 +20,7 @@ object ValidatorSpecification extends Properties("Validate") {
     }
   }
 
-  def validatedGen[A](implicit a: Arbitrary[A]): Gen[Validated[A]] = for {
+  private def validatedGen[A](implicit a: Arbitrary[A]): Gen[Validated[A]] = for {
     isValid <- Gen.oneOf(List(true, false))
     errors <- Gen.listOf[String](Gen.alphaLowerStr)
     a <- Arbitrary.arbitrary[A]
