@@ -29,7 +29,7 @@ object ValidatorSpecification extends Properties("Validate") {
   implicit def validatedArbitrary[A](implicit a: Arbitrary[A]): Arbitrary[Validated[A]] =
     Arbitrary(validatedGen)
 
-  property("identityAp Law") = forAll {(fa: Validated[Int]) =>
+  property("identityAp Law") = forAll { fa: Validated[Int] =>
     laws.identityAp(fa)
   }
 
