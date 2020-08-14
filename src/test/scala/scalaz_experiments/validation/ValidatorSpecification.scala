@@ -41,6 +41,10 @@ object ValidatorSpecification extends Properties("Validate") {
     laws.interchange(faTob, a)
   }
 
+  property("composition Law") = forAll { (fbc: Validated[Int => String], fab: Validated[String => Int], fa: Validated[String]) =>
+    laws.composition(fbc, fab, fa)
+  }
+
   property("mapLikeDerived Law") = forAll { (fa: Validated[String], aTob: String => Int) =>
     laws.mapLikeDerived(aTob, fa)
   }
