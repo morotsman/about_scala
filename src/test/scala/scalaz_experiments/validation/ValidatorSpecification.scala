@@ -22,11 +22,12 @@ object ValidatorSpecification extends Properties("Validate") {
 
   def validatedGen[A](implicit a: Arbitrary[A]): Gen[Validated[A]] = for {
     isValid <- Gen.oneOf(List(true, false))
-    message <- Gen.alphaLowerStr
+    errors <- Gen.listOf[String](Gen.alphaLowerStr)
     a <- Arbitrary.arbitrary[A]
-  } yield (if (isValid) Valid(a) else Invalid(message))
+  } yield (if (isValid) Valid(a) else Invalid(errors.toVector))
 
-  implicit def validatedArbitrary[A](implicit a: Arbitrary[A]) = Arbitrary(validatedGen)
+  implicit def validatedArbitrary[A](implicit a: Arbitrary[A]): Arbitrary[Validated[A]] =
+    Arbitrary(validatedGen)
 
   property("identityAp Law") = forAll {(fa: Validated[Int]) =>
     laws.identityAp(fa)
