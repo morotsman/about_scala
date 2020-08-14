@@ -44,6 +44,4 @@ object ValidatorSpecification extends Properties("Validate") {
     laws.mapLikeDerived(aTob, fa)
   }
 
-  val intGenerator: Gen[Int] = Gen.choose(Int.MinValue, Int.MaxValue)
-
 }
