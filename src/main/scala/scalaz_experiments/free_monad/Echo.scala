@@ -40,16 +40,20 @@ object EchoProgram {
   } yield (r)
 
   def loop: Echo[Try[Unit]] = for {
-    i <- echo
-    s <- if (quit(i)) goodbye else loop
+    in <- readFromPrompt
+    _ <- echo(in)
+    s <- if (quit(in)) goodbye else loop
   } yield (s)
 
-  private def echo = for {
+  private def readFromPrompt = for {
     _ <- print("> ")
     s <- read
-    _ <- printLn(s"You wrote: '${s.get}'")
-    _ <- printLn("")
   } yield (s)
+
+  private def echo[A](in: Try[A]) = for {
+    _ <- printLn(s"You wrote: '${in.get}'")
+    _ <- printLn("")
+  } yield ()
 
   private def quit(st: Try[String]): Boolean =
     st.filter(_ == "q").isSuccess
