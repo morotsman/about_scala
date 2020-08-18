@@ -67,11 +67,11 @@ object EchoEchoEcho {
 
       def apply[A](fa: EchoA[A]): Id[A] = fa match {
         case Read() =>
-          Try(StdIn.readLine).map(_.asInstanceOf[A])
+          Try(StdIn.readLine)
         case PrintLn(s) =>
-          Try(println(s)).map(_.asInstanceOf[A])
+          Try(println(s))
         case Print(s) =>
-          Try(System.out.print(s)).map(_.asInstanceOf[A])
+          Try(System.out.print(s))
       }
     }
 
@@ -108,8 +108,9 @@ object EchoEchoEcho {
     s.copy(in = i)
 
   def main(args: Array[String]): Unit = {
-    //program.foldMap(compilerSideEffect)
-    val result = program.foldMap(pureCompiler).run(Buffers(List("one", "two", "three", "q"), List()))
+    program.foldMap(compilerWithSideEffects)
+
+    val result = program.foldMap(pureCompiler).run(Buffers(List("one", "two", "three", "four", "q"), List()))
     result._1.out.reverse.foreach(println)
   }
 
