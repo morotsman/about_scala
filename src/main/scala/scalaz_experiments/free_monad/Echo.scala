@@ -82,21 +82,21 @@ object EchoEchoEcho {
     override def apply[A](fa: EchoA[A]): EchoState[A] = fa match {
       case Read() => for {
         old <- State.get
-        _ <- State.modify[Buffers[Any]](addToOutput(_)(old.in.head))
-        _ <- State.modify[Buffers[Any]](addToOutput(_)("\n"))
-        _ <- State.modify[Buffers[Any]](addToInput(_)(old.in.tail))
+        _ <- State.modify(addToOutput(old.in.head))
+        _ <- State.modify(addToOutput("\n"))
+        _ <- State.modify(addToInput(old.in.tail))
       } yield Try(old.in.head)
       case PrintLn(output) => for {
-        _ <- State.modify[Buffers[Any]](addToOutput(_)(output))
-        _ <- State.modify[Buffers[Any]](addToOutput(_)("\n"))
+        _ <- State.modify(addToOutput(output))
+        _ <- State.modify(addToOutput("\n"))
       } yield Try(())
       case Print(output) => for {
-        _ <- State.modify[Buffers[Any]](addToOutput(_)(output))
+        _ <- State.modify(addToOutput(output))
       } yield Try(())
     }
   }
 
-  def addToOutput[A](s: Buffers[Any])(i: A): Buffers[Any] =
+  def addToOutput[A](i: A)(s: Buffers[Any]): Buffers[Any] =
     if (s.out.isEmpty) {
       s.copy(out = i :: s.out)
     } else {
@@ -104,7 +104,7 @@ object EchoEchoEcho {
       s.copy(out = head :: s.out.tail)
     }
 
-  def addToInput[A](s: Buffers[Any])(i: List[A]): Buffers[Any] =
+  def addToInput[A](i: List[A])(s: Buffers[Any]): Buffers[Any] =
     s.copy(in = i)
 
   def main(args: Array[String]): Unit = {
