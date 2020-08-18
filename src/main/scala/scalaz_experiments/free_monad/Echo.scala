@@ -61,7 +61,6 @@ object EchoEchoEcho {
 
   import Echo._
 
-
   def compilerWithSideEffects: EchoA ~> Id.Id =
     new (EchoA ~> Id) {
       def apply[A](fa: EchoA[A]): Id[A] = fa match {

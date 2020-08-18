@@ -34,7 +34,7 @@ object EchoSpecification extends Properties("Echo") {
 
   def addToInput[A](i: List[A])(s: Buffers[Any]): Buffers[Any] =
     s.copy(in = i)
-  
+
   property("echo") = forAll { (input: List[String]) =>
     val myInput = input.filter(_ != "q").appended("q")
 
