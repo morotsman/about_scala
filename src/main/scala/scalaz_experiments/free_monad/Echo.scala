@@ -69,7 +69,7 @@ object EchoEchoEcho {
         case Read() =>
           Try(StdIn.readLine)
         case PrintLn(s) =>
-          Try(println(s))
+          Try(System.out.println(s))
         case Print(s) =>
           Try(System.out.print(s))
       }
