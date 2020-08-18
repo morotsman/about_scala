@@ -4,7 +4,7 @@ import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
 import scalaz.Scalaz._
 import scalaz._
-import scalaz_experiments.free_monad.Echo.program
+import scalaz_experiments.free_monad.EchoProgram.program
 
 import scala.util.Try
 

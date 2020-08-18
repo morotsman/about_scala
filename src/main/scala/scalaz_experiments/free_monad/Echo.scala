@@ -2,6 +2,7 @@ package scalaz_experiments.free_monad
 
 import scalaz._
 import Scalaz._
+import scalaz_experiments.free_monad.Echo.{Echo, print, printLn, read}
 
 import scala.io.StdIn
 import scala.util.Try
@@ -18,20 +19,22 @@ object Echo {
   type Echo[A] = Free[EchoA, A]
 
   def read[A](): Echo[Try[A]] =
-    Free.liftF[EchoA, Try[A]](Read[A])
+    Free.liftF[EchoA, Try[A]](Read[A]())
 
   def printLn[A](a: A): Echo[Try[Unit]] =
     Free.liftF[EchoA, Try[Unit]](PrintLn[A](a))
 
   def print[A](a: A): Echo[Try[Unit]] =
     Free.liftF[EchoA, Try[Unit]](Print[A](a))
+}
 
+object EchoProgram {
   def program: Echo[Try[Unit]] = for {
     _ <- greet
     s <- loop
   } yield (s)
 
-  def greet: Echo[Try[Unit]] = for {
+  private def greet= for {
     r <- printLn("The great echo program!")
     r <- printLn("'q' to quit")
   } yield (r)
@@ -41,25 +44,24 @@ object Echo {
     s <- if (quit(i)) goodbye else loop
   } yield (s)
 
-  def echo: Echo[Try[String]] = for {
+  private def echo = for {
     _ <- print("> ")
     s <- read
     _ <- printLn(s"You wrote: '${s.get}'")
     _ <- printLn("")
   } yield (s)
 
-  def quit(st: Try[String]): Boolean =
+  private def quit(st: Try[String]): Boolean =
     st.filter(_ == "q").isSuccess
 
-  def goodbye: Echo[Try[Unit]] = for {
+  private def goodbye = for {
     r <- printLn("Hope to see you again soon, goodbye!")
   } yield (r)
-
 }
 
 object EchoEchoEcho {
 
-  import Echo._
+  import EchoProgram._
 
   def compilerWithSideEffects: EchoA ~> Id.Id =
     new (EchoA ~> Id) {
