@@ -64,7 +64,6 @@ object EchoEchoEcho {
 
   def compilerWithSideEffects: EchoA ~> Id.Id =
     new (EchoA ~> Id) {
-
       def apply[A](fa: EchoA[A]): Id[A] = fa match {
         case Read() =>
           Try(StdIn.readLine)
@@ -75,43 +74,8 @@ object EchoEchoEcho {
       }
     }
 
-  case class Buffers[A](in: List[A], out: List[A])
-
-  type EchoState[A] = State[Buffers[Any], A]
-  val pureCompiler: EchoA ~> EchoState = new (EchoA ~> EchoState) {
-    override def apply[A](fa: EchoA[A]): EchoState[A] = fa match {
-      case Read() => for {
-        old <- State.get
-        _ <- State.modify(addToOutput(old.in.head))
-        _ <- State.modify(addToOutput("\n"))
-        _ <- State.modify(addToInput(old.in.tail))
-      } yield Try(old.in.head)
-      case PrintLn(output) => for {
-        _ <- State.modify(addToOutput(output))
-        _ <- State.modify(addToOutput("\n"))
-      } yield Try(())
-      case Print(output) => for {
-        _ <- State.modify(addToOutput(output))
-      } yield Try(())
-    }
-  }
-
-  def addToOutput[A](i: A)(s: Buffers[Any]): Buffers[Any] =
-    if (s.out.isEmpty) {
-      s.copy(out = i :: s.out)
-    } else {
-      val head = s.out.head.toString + i
-      s.copy(out = head :: s.out.tail)
-    }
-
-  def addToInput[A](i: List[A])(s: Buffers[Any]): Buffers[Any] =
-    s.copy(in = i)
-
   def main(args: Array[String]): Unit = {
     program.foldMap(compilerWithSideEffects)
-
-    val result = program.foldMap(pureCompiler).run(Buffers(List("one", "two", "three", "four", "q"), List()))
-    result._1.out.reverse.foreach(println)
   }
 
 }
