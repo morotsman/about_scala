@@ -35,30 +35,30 @@ object EchoProgram {
   } yield (s)
 
   private def greet= for {
-    r <- printLn("The great echo program!")
+    _ <- printLn("The great echo program!")
     r <- printLn("'q' to quit")
-  } yield (r)
+  } yield r
 
   def loop: Echo[Try[Unit]] = for {
     in <- readFromPrompt
     _ <- echo(in)
     s <- if (quit(in)) goodbye else loop
-  } yield (s)
+  } yield s
 
-  private def readFromPrompt = for {
+  private def readFromPrompt: Echo[Try[String]] = for {
     _ <- print("> ")
-    s <- read
-  } yield (s)
+    s <- read[String]()
+  } yield s
 
-  private def echo[A](in: Try[A]) = for {
+  private def echo[A](in: Try[A]): Echo[Try[Unit]] = for {
     _ <- printLn(s"You wrote: '${in.get}'")
-    _ <- printLn("")
-  } yield ()
+    r <- printLn("")
+  } yield r
 
   private def quit(st: Try[String]): Boolean =
     st.filter(_ == "q").isSuccess
 
-  private def goodbye = for {
+  private def goodbye: Echo[Try[Unit]]  = for {
     r <- printLn("Hope to see you again soon, goodbye!")
   } yield (r)
 }
