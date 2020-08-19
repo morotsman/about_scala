@@ -40,7 +40,7 @@ object EchoSpecification extends Properties("Echo") {
 
     val result: (Buffers[Any], Try[Unit]) = program.foldMap(pureCompilerNiceOutput).run(Buffers(myInput, List()))
 
-    val intro = List(
+    val hello = List(
       "The great echo program!",
       "'q' to quit"
     )
@@ -51,7 +51,7 @@ object EchoSpecification extends Properties("Echo") {
 
     val output = myInput.flatMap(s => List("> ", s, s"You wrote: '$s'", ""))
 
-    val expectedResult = intro ++ output ++ goodbye
+    val expectedResult = hello ++ output ++ goodbye
 
     expectedResult == result._1.out.reverse
   }
