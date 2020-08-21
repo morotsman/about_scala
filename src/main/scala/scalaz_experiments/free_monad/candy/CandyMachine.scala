@@ -4,7 +4,6 @@ import cats.data.{EitherK, State}
 import cats.free.Free
 import cats.{Id, InjectK, ~>}
 
-import scala.collection.mutable.ListBuffer
 import scala.io.StdIn
 
 /* Handles user interaction */
@@ -25,9 +24,9 @@ object IO {
 }
 
 /* Represents persistence operations */
-sealed trait MachineOp[A]
-
 case class MachineState(locked: Boolean, candies: Int, coins: Int)
+
+sealed trait MachineOp[A]
 
 case class UpdateState(f: MachineState => (MachineState, String)) extends MachineOp[String]
 
@@ -36,7 +35,7 @@ case class CurrentState() extends MachineOp[MachineState]
 class Machine[F[_]](implicit I: InjectK[MachineOp, F]) {
   def updateState(f: MachineState => (MachineState, String)): Free[F, String] = Free.inject[MachineOp, F](UpdateState(f))
 
-  def currentState(): Free[F, MachineState] = Free.inject[MachineOp, F](CurrentState())
+  def currentState: Free[F, MachineState] = Free.inject[MachineOp, F](CurrentState())
 }
 
 object Machine {
@@ -55,7 +54,6 @@ case class Invalid(s: String) extends Input {
   override def toString: String = s"Sorry, $s is not a valid input"
 }
 
-
 object CandyMachine {
   type CandyMachine[A] = EitherK[MachineOp, IOA, A]
 
@@ -63,6 +61,13 @@ object CandyMachine {
 
   def program(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[Unit] = {
     import I._, D._
+
+    def main(): Program[Unit] =
+      for {
+        _ <- welcome()
+        _ <- showPossibleInputs
+        _ <- doM(programLoop)(_ != Quit)
+      } yield ()
 
     def welcome(): Program[Unit] = for {
       _ <- write("Welcome to the fabulous candy machine!")
@@ -78,37 +83,48 @@ object CandyMachine {
 
     def getInput: Program[Input] = for {
       input <- read().map(toInput)
-      _ <- newLine
       result <- if (validInput(input)) pure(input) else handleInvalidInput(input)
     } yield result
+
+    def newLine: Program[Unit] = write("")
+
+    def pure[A](i: A): Program[A] = Free.pure[CandyMachine, A](i)
+
+    def validInput(i: Input): Boolean = i == Turn || i == Coin || i == Quit
 
     def handleInvalidInput(i: Input): Program[Input] = for {
       _ <- write(i.toString)
       - <- showPossibleInputs
-      - <- newLine
       r <- getInput
     } yield r
 
-    def newLine: Program[Unit] = write("")
-
-    def pure[A](i: A): Program[A] =
-      Free.pure[CandyMachine, A](i)
-
-    def validInput(i: Input): Boolean =
-      i == Turn || i == Coin || i == Quit
-
-    for {
-      _ <- welcome()
-      _ <- showPossibleInputs
-      current <- currentState()
-      _ <- write(current.toString)
-      input <- getInput
-      feedback <- updateState(applyRule(input))
-      _ <- write(feedback)
-      current <- currentState()
-      _ <- write(current.toString)
+    def doM[A](p: Program[A])(expr: => A => Boolean): Program[Unit] = for {
+      a <- p
+      _ <- if (expr(a)) doM(p)(expr) else pure(())
     } yield ()
 
+    def programLoop: Program[Input] = for {
+      _ <- showCurrentStatus
+      input <- getInput
+      _ <- if (input != Quit) updateMachine(input) else pure(())
+    } yield input
+
+    def showCurrentStatus: Program[Unit] = for {
+      current <- currentState
+      _ <- write(statusMessage(current))
+    } yield ()
+
+    def statusMessage(m: MachineState): String = m match {
+      case MachineState(locked, candies, coins) if locked => s"The machine is locked and has $candies candies left"
+      case MachineState(locked, candies, coins) => s"The machine is unlocked and has $candies candies left"
+    }
+
+    def updateMachine(input: Input): Program[Unit] = for {
+      feedback <- updateState(applyRule(input))
+      _ <- write(feedback)
+    } yield ()
+
+    main()
   }
 
   def toInput(s: String): Input =
@@ -146,17 +162,12 @@ object CandyMachine {
 object IOInterpreter extends (IOA ~> Id) {
   def apply[A](i: IOA[A]) = i match {
     case Read() =>
+      System.out.print("> ")
       StdIn.readLine()
     case Write(msg) =>
       System.out.println(msg)
   }
 }
-
-object StateMachine {
-  type StateMachine[A] = State[MachineState, A]
-}
-
-import StateMachine._
 
 object InpureMachineInterpreter extends (MachineOp ~> Id) {
   private[this] var machine = new MachineState(true, 10, 0)
@@ -170,27 +181,11 @@ object InpureMachineInterpreter extends (MachineOp ~> Id) {
   }
 }
 
-
-
-object PureMachineInterpreter extends (MachineOp ~> StateMachine) {
-  def apply[A](fa: MachineOp[A]) = fa match {
-    case UpdateState(f) => for {
-      m <- State.get[MachineState]
-      (newState, output) = f(m)
-      _ <- State.set(newState)
-    } yield output
-    case CurrentState() => for {
-      m <- State.get
-    } yield m
-  }
-}
-
 object Test {
 
   import Machine._, IO._, CandyMachine._
 
   val interpreter1: CandyMachine ~> Id = InpureMachineInterpreter or IOInterpreter
-  // val interpreter2: CandyMachine ~> Id =  IOInterpreter or PureMachineInterpreter
 
   def main(args: Array[String]): Unit = {
     val evaled: Unit = program.foldMap(interpreter1)
