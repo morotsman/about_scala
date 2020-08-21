@@ -56,7 +56,7 @@ object EchoProgramWithErrorHandling {
   } yield (r)
 }
 
-object EchoEchoEcho {
+object EchoEchoEchoWithErrorHandling {
 
   import EchoProgram._
 
