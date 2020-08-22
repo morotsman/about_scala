@@ -3,7 +3,7 @@ package scalaz_experiments.free_monad.candy
 import cats.{Id, ~>}
 import cats.instances.future._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.io.StdIn
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -35,13 +35,11 @@ object MachineActor {
   def behave(m: MachineState): Behavior[Machine] = Behaviors.receive { (context, message) =>
     message match {
       case UpdateState(f, replyTo) => {
-        println("UpdateState")
         val (newMachine, result) = f(m)
         replyTo ! UpdateStateReply(result)
         behave(newMachine)
       }
       case CurrentState(replyTo) => {
-        println("CurrentState")
         replyTo ! CurrentStateReply(m)
         Behaviors.same
       }
@@ -86,7 +84,6 @@ object SystemBehaviour {
       val ref: ActorRef[Machine] = context.spawn(MachineActor(m), "machine")
 
       Behaviors.receiveMessage { message =>
-        println(message)
         message.replyTo ! Reply(ref)
         Behaviors.same
       }
@@ -104,8 +101,8 @@ object ActorCandyMachine {
     ActorSystem(SystemBehaviour.setup(initialMachine), "candy")
 
   implicit val timeout: Timeout = 3.seconds
-  implicit val ec = system.executionContext
-  implicit val scheduler = system.scheduler
+  implicit val ec: ExecutionContextExecutor = system.executionContext
+  implicit val scheduler: Scheduler = system.scheduler
 
   def main(args: Array[String]): Unit = {
     val result: Future[Unit] = for {
@@ -113,7 +110,7 @@ object ActorCandyMachine {
       _ <- runProgram(r)
     } yield ()
 
-    result.onComplete(r => system.terminate())
+    result.onComplete(_ => system.terminate())
   }
 
   def setupSystem(): Future[Reply] = system.ask((ref: ActorRef[Reply]) => Setup(ref))
