@@ -34,9 +34,9 @@ object Test {
         val (newMachine, output) = f(s.machine)
         (updateMachine(newMachine)(s), output)
       }
-      case CurrentState() => State { s =>
-        (s, s.machine)
-      }
+      case CurrentState() => for {
+        s <- State.get
+      } yield s.machine
     }
 
     def updateMachine[A](m: MachineState)(s: TestState[Any]): TestState[Any] =
@@ -55,7 +55,7 @@ object TestCandyMachine {
     val myInput = List[Any]("c", "t", "a", "c", "t", "q")
     val initialMachine = new MachineState(true, 50, 0)
     val initialState = TestState(myInput, List(), initialMachine)
-    
+
     val result = program.foldMap(interpreter).run(initialState).value
     result._1.out.reverse.foreach(println)
     println("machine: " + result._1.machine)
