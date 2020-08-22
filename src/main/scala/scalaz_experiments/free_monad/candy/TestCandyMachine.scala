@@ -4,7 +4,8 @@ import cats.data.State
 import cats.{Id, ~>}
 
 object Test {
-  case class Buffers[A](in: List[A], out: List[A])
+
+  case class Buffers[A](in: List[A], out: List[A], machine: MachineState)
 
   type CandyState[A] = State[Buffers[Any], A]
 
@@ -27,36 +28,37 @@ object Test {
       s.copy(in = i)
   }
 
-  object MachineInterpreterState {
-    def inpureMachineInterpreter(initialMachine: MachineState): (MachineOp ~> CandyState) = new (MachineOp ~> CandyState){
-      var currentMachine = initialMachine
-
-      def apply[A](fa: MachineOp[A]) = fa match {
-        case UpdateState(f) =>State { s =>
-          val (newMachine, output) = f(currentMachine)
-          currentMachine = newMachine
-          (s, output)
-        }
-        case CurrentState() => State { s =>
-          (s, currentMachine)
-        }
+  object PureMachineInterpreter extends (MachineOp ~> CandyState) {
+    def apply[A](fa: MachineOp[A]) = fa match {
+      case UpdateState(f) => State { s =>
+        val (newMachine, output) = f(s.machine)
+        (updateMachine(newMachine)(s), output)
+      }
+      case CurrentState() => State { s =>
+        (s, s.machine)
       }
     }
+
+    def updateMachine[A](m: MachineState)(s: Buffers[Any]): Buffers[Any] =
+      s.copy(machine = m)
   }
+
 }
 
 object TestCandyMachine {
-  import Machine._, IO._, CandyMachine._, Test._, Test.MachineInterpreterState._
+
+  import Machine._, IO._, CandyMachine._, Test._
+
+  val interpreter: CandyMachine ~> CandyState = PureMachineInterpreter or IOInterpreterState
 
   def main(args: Array[String]): Unit = {
-    val myInput = List("c", "t", "a", "c", "t", "q")
-
-    val initialMachine = new MachineState(true, 20, 0)
-
-    val interpreter: CandyMachine ~> CandyState = inpureMachineInterpreter(initialMachine) or IOInterpreterState
-
-    val result = program.foldMap(interpreter).run(Buffers(myInput, List()))
-    result.value._1.out.reverse.foreach(println)
+    val myInput = List[Any]("c", "t", "a", "c", "t", "q")
+    val initialMachine = new MachineState(true, 50, 0)
+    val initialState = Buffers(myInput, List(), initialMachine)
+    
+    val result = program.foldMap(interpreter).run(initialState).value
+    result._1.out.reverse.foreach(println)
+    println("machine: " + result._1.machine)
   }
 }
 
