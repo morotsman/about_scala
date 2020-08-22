@@ -59,8 +59,6 @@ object ActorIOInterpreter extends (IOA ~> Future) {
 }
 
 object ActorMachineInterpreter {
-  var machine = new MachineState(true, 50, 0)
-
   def actorMachineInterpreter(ref: ActorRef[Machine])(implicit timeout: Timeout, scheduler: Scheduler): (MachineOp ~> Future) = new (MachineOp ~> Future) {
     override def apply[A](fa: MachineOp[A]): Future[A] = fa match {
       case UpdateState(f) => ref
