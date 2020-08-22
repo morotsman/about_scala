@@ -5,9 +5,9 @@ import cats.{Id, ~>}
 
 object Test {
 
-  case class Buffers[A](in: List[A], out: List[A], machine: MachineState)
+  case class TestState[A](in: List[A], out: List[A], machine: MachineState)
 
-  type CandyState[A] = State[Buffers[Any], A]
+  type CandyState[A] = State[TestState[Any], A]
 
   object IOInterpreterState extends (IOA ~> CandyState) {
     def apply[A](i: IOA[A]) = i match {
@@ -21,10 +21,10 @@ object Test {
       } yield ()
     }
 
-    def addToOutput[A](i: A)(s: Buffers[Any]): Buffers[Any] =
+    def addToOutput[A](i: A)(s: TestState[Any]): TestState[Any] =
       s.copy(out = i :: s.out)
 
-    def addToInput[A](i: List[A])(s: Buffers[Any]): Buffers[Any] =
+    def addToInput[A](i: List[A])(s: TestState[Any]): TestState[Any] =
       s.copy(in = i)
   }
 
@@ -39,7 +39,7 @@ object Test {
       }
     }
 
-    def updateMachine[A](m: MachineState)(s: Buffers[Any]): Buffers[Any] =
+    def updateMachine[A](m: MachineState)(s: TestState[Any]): TestState[Any] =
       s.copy(machine = m)
   }
 
@@ -54,7 +54,7 @@ object TestCandyMachine {
   def main(args: Array[String]): Unit = {
     val myInput = List[Any]("c", "t", "a", "c", "t", "q")
     val initialMachine = new MachineState(true, 50, 0)
-    val initialState = Buffers(myInput, List(), initialMachine)
+    val initialState = TestState(myInput, List(), initialMachine)
     
     val result = program.foldMap(interpreter).run(initialState).value
     result._1.out.reverse.foreach(println)
