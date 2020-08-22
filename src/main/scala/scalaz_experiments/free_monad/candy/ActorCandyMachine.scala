@@ -73,18 +73,18 @@ object ActorMachineInterpreter {
   }
 }
 
-object SystemBehaviour {
+object SystemInitializer {
 
-  case class Setup(replyTo: ActorRef[Reply])
+  case class Setup(replyTo: ActorRef[SystemContext])
 
-  case class Reply(machineActor: ActorRef[Machine])
+  case class SystemContext(machineActor: ActorRef[Machine])
 
   def setup(m: MachineState): Behavior[Setup] =
     Behaviors.setup { context =>
       val ref: ActorRef[Machine] = context.spawn(MachineActor(m), "machine")
 
       Behaviors.receiveMessage { message =>
-        message.replyTo ! Reply(ref)
+        message.replyTo ! SystemContext(ref)
         Behaviors.same
       }
     }
@@ -92,13 +92,13 @@ object SystemBehaviour {
 
 object ActorCandyMachine {
 
-  import Machine._, IO._, CandyMachine._, SystemBehaviour._, ActorMachineInterpreter._
+  import Machine._, IO._, CandyMachine._, SystemInitializer._, ActorMachineInterpreter._
 
   println("ASync")
   val initialMachine = new MachineState(true, 50, 0)
 
   val system: ActorSystem[Setup] =
-    ActorSystem(SystemBehaviour.setup(initialMachine), "candy")
+    ActorSystem(SystemInitializer.setup(initialMachine), "candy")
 
   implicit val timeout: Timeout = 3.seconds
   implicit val ec: ExecutionContextExecutor = system.executionContext
@@ -113,9 +113,9 @@ object ActorCandyMachine {
     result.onComplete(_ => system.terminate())
   }
 
-  def setupSystem(): Future[Reply] = system.ask((ref: ActorRef[Reply]) => Setup(ref))
+  def setupSystem(): Future[SystemContext] = system.ask((ref: ActorRef[SystemContext]) => Setup(ref))
 
-  def runProgram(r: Reply): Future[Unit] = {
+  def runProgram(r: SystemContext): Future[Unit] = {
     val interpreter: CandyMachine ~> Future = actorMachineInterpreter(r.machineActor) or AsyncIOInterpreter
     program.foldMap(interpreter)
   }
