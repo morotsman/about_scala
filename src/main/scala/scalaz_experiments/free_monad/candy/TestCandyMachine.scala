@@ -48,12 +48,12 @@ object Test {
 object TestCandyMachine {
   import Machine._, IO._, CandyMachine._, Test._, Test.MachineInterpreterState._
 
-  val initialMachine = new MachineState(true, 20, 0)
-
-  val interpreter: CandyMachine ~> CandyState = inpureMachineInterpreter(initialMachine) or IOInterpreterState
-
   def main(args: Array[String]): Unit = {
     val myInput = List("c", "t", "a", "c", "t", "q")
+
+    val initialMachine = new MachineState(true, 20, 0)
+
+    val interpreter: CandyMachine ~> CandyState = inpureMachineInterpreter(initialMachine) or IOInterpreterState
 
     val result = program.foldMap(interpreter).run(Buffers(myInput, List()))
     result.value._1.out.reverse.foreach(println)
