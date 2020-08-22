@@ -1,73 +1,50 @@
 package scalaz_experiments.free_monad.candy
 
 import cats.{Id, ~>}
+import cats.instances.future._
 
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.io.StdIn
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import akka.actor.typed.{ ActorRef, ActorSystem, Behavior }
+import akka.actor.typed.{ActorRef, ActorSystem, Behavior, Scheduler}
 import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.scaladsl.AskPattern._
+import akka.util.Timeout
+import scalaz_experiments.free_monad.candy.MachineActor.{CurrentStateReply, Machine, MachineReply, UpdateStateReply}
 
+object MachineActor {
 
-import akka.actor.Actor
+  sealed trait Machine
 
+  case class UpdateState(f: MachineState => (MachineState, String), replyTo: ActorRef[UpdateStateReply]) extends Machine
 
-object CandyActor {
-  case class UpdateState(f: MachineState => (MachineState, String))
-  case class CurrentState()
-}
+  case class CurrentState(replyTo: ActorRef[CurrentStateReply]) extends Machine
 
-class CandyActor(machine: MachineState) extends Actor {
+  sealed trait MachineReply
 
-  var currentMachine = machine
+  case class UpdateStateReply(result: String) extends MachineReply
 
-  override def receive: Receive = {
-    case UpdateState(f) => {
-      val (newMachine, output) = f(currentMachine)
-      currentMachine = newMachine
-      sender() ! output
-    }
-    case CurrentState => {
-      sender() ! currentMachine
-    }
-    case _ => println("Handle error")
+  case class CurrentStateReply(machine: MachineState) extends MachineReply
+
+  def apply(m: MachineState): Behavior[Machine] = {
+    behave(m)
   }
-}
 
-/*
-object HelloWorldMain {
-
-  final case class SayHello(name: String)
-
-  def apply(): Behavior[SayHello] =
-    Behaviors.setup { context =>
-      val greeter = context.spawn(HelloWorld(), "greeter")
-
-      Behaviors.receiveMessage { message =>
-        val replyTo = context.spawn(HelloWorldBot(max = 3), message.name)
-        greeter ! HelloWorld.Greet(message.name, replyTo)
+  def behave(m: MachineState): Behavior[Machine] = Behaviors.receive { (context, message) =>
+    message match {
+      case UpdateState(f, replyTo) => {
+        println("UpdateState")
+        val (newMachine, result) = f(m)
+        replyTo ! UpdateStateReply(result)
+        behave(newMachine)
+      }
+      case CurrentState(replyTo) => {
+        println("CurrentState")
+        replyTo ! CurrentStateReply(m)
         Behaviors.same
       }
-    }
-}
- */
-
-object ActorInpureMachineInterpreter extends (MachineOp ~> Future) {
-  //val system: ActorSystem[HelloWorldMain.SayHello] =
-  //  ActorSystem(HelloWorldMain(), "Candy")
-
-  private[this] var machine = new MachineState(true, 10, 0)
-
-  def apply[A](fa: MachineOp[A]) = fa match {
-    case UpdateState(f) => Future.successful {
-      val (newMachine, output) = f(machine)
-      machine = newMachine
-      output
-    }
-    case CurrentState() => Future.successful {
-      machine
     }
   }
 }
@@ -83,3 +60,66 @@ object ActorIOInterpreter extends (IOA ~> Future) {
   }
 }
 
+object ActorMachineInterpreter {
+  var machine = new MachineState(true, 50, 0)
+
+  def actorMachineInterpreter(ref: ActorRef[Machine])(implicit timeout: Timeout, scheduler: Scheduler): (MachineOp ~> Future) = new (MachineOp ~> Future) {
+    override def apply[A](fa: MachineOp[A]): Future[A] = fa match {
+      case UpdateState(f) => ref
+        .ask((ref: ActorRef[UpdateStateReply]) => MachineActor.UpdateState(f, ref))
+        .map(r => r.result)
+      case CurrentState() => ref
+        .ask((ref: ActorRef[CurrentStateReply]) => MachineActor.CurrentState(ref))
+        .map(r => r.machine)
+    }
+  }
+}
+
+object SystemBehaviour {
+
+  case class Setup(replyTo: ActorRef[Reply])
+
+  case class Reply(machineActor: ActorRef[Machine])
+
+  def setup(m: MachineState): Behavior[Setup] =
+    Behaviors.setup { context =>
+      val ref: ActorRef[Machine] = context.spawn(MachineActor(m), "machine")
+
+      Behaviors.receiveMessage { message =>
+        println(message)
+        message.replyTo ! Reply(ref)
+        Behaviors.same
+      }
+    }
+}
+
+object ActorCandyMachine {
+
+  import Machine._, IO._, CandyMachine._, SystemBehaviour._, ActorMachineInterpreter._
+
+  println("ASync")
+  val initialMachine = new MachineState(true, 50, 0)
+
+  val system: ActorSystem[Setup] =
+    ActorSystem(SystemBehaviour.setup(initialMachine), "candy")
+
+  implicit val timeout: Timeout = 3.seconds
+  implicit val ec = system.executionContext
+  implicit val scheduler = system.scheduler
+
+  def main(args: Array[String]): Unit = {
+    val result: Future[Unit] = for {
+      r <- setupSystem()
+      _ <- runProgram(r)
+    } yield ()
+
+    result.onComplete(r => system.terminate())
+  }
+
+  def setupSystem(): Future[Reply] = system.ask((ref: ActorRef[Reply]) => Setup(ref))
+
+  def runProgram(r: Reply): Future[Unit] = {
+    val interpreter: CandyMachine ~> Future = actorMachineInterpreter(r.machineActor) or AsyncIOInterpreter
+    program.foldMap(interpreter)
+  }
+}
