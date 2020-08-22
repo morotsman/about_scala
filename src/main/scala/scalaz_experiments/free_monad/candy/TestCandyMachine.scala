@@ -27,27 +27,30 @@ object Test {
       s.copy(in = i)
   }
 
-  object InpureMachineInterpreter extends (MachineOp ~> CandyState) {
-    private[this] var machine = new MachineState(true, 10, 0)
+  object MachineInterpreterState {
+    def inpureMachineInterpreter(initialMachine: MachineState): (MachineOp ~> CandyState) = new (MachineOp ~> CandyState){
+      var currentMachine = initialMachine
 
-    def apply[A](fa: MachineOp[A]) = fa match {
-      case UpdateState(f) => State { s =>
-        val (newMachine, output) = f(machine)
-        machine = newMachine
-        (s, output)
-      }
-      case CurrentState() => State { s =>
-        (s, machine)
+      def apply[A](fa: MachineOp[A]) = fa match {
+        case UpdateState(f) =>State { s =>
+          val (newMachine, output) = f(currentMachine)
+          currentMachine = newMachine
+          (s, output)
+        }
+        case CurrentState() => State { s =>
+          (s, currentMachine)
+        }
       }
     }
   }
 }
 
 object TestCandyMachine {
+  import Machine._, IO._, CandyMachine._, Test._, Test.MachineInterpreterState._
 
-  import Machine._, IO._, CandyMachine._, Test._
+  val initialMachine = new MachineState(true, 20, 0)
 
-  val interpreter: CandyMachine ~> CandyState = InpureMachineInterpreter or IOInterpreterState
+  val interpreter: CandyMachine ~> CandyState = inpureMachineInterpreter(initialMachine) or IOInterpreterState
 
   def main(args: Array[String]): Unit = {
     val myInput = List("c", "t", "a", "c", "t", "q")
