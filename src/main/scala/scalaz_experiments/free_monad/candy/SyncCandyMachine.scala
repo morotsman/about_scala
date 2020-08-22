@@ -16,7 +16,7 @@ object IOInterpreter extends (IOA ~> Id) {
   }
 }
 
-object Test {
+object MachineInterpreter {
   def InpureMachineInterpreter(initialMachine: MachineState): (MachineOp ~> Id) = new (MachineOp ~> Id){
     var currentMachine = initialMachine
 
@@ -31,7 +31,7 @@ object Test {
 }
 
 object SyncCandyMachine {
-  import Machine._, IO._, CandyMachine._, Test._
+  import Machine._, IO._, CandyMachine._, MachineInterpreter._
 
   val initialMachine = new MachineState(true, 20, 0)
 
