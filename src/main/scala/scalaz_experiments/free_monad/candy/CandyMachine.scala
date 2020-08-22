@@ -4,7 +4,8 @@ import cats.data.{EitherK, State}
 import cats.free.Free
 import cats.{Id, InjectK, ~>}
 
-import scala.io.StdIn
+import scala.language.postfixOps
+import CandyRule._
 
 /* Handles user interaction */
 sealed trait IOA[A]
@@ -24,8 +25,6 @@ object IO {
 }
 
 /* Represents persistence operations */
-case class MachineState(locked: Boolean, candies: Int, coins: Int)
-
 sealed trait MachineOp[A]
 
 case class UpdateState(f: MachineState => (MachineState, String)) extends MachineOp[String]
@@ -64,12 +63,12 @@ object CandyMachine {
 
     def main(): Program[Unit] =
       for {
-        _ <- welcome()
+        _ <- welcome
         _ <- showPossibleInputs
-        _ <- doM(programLoop)(_ != Quit)
+        _ <- doWhileM(programLoop)(_ != Quit)
       } yield ()
 
-    def welcome(): Program[Unit] = for {
+    def welcome: Program[Unit] = for {
       _ <- write("Welcome to the fabulous candy machine!")
     } yield ()
 
@@ -98,9 +97,9 @@ object CandyMachine {
       r <- getInput
     } yield r
 
-    def doM[A](p: Program[A])(expr: => A => Boolean): Program[Unit] = for {
+    def doWhileM[A](p: Program[A])(expr: => A => Boolean): Program[Unit] = for {
       a <- p
-      _ <- if (expr(a)) doM(p)(expr) else pure(())
+      _ <- if (expr(a)) doWhileM(p)(expr) else pure(())
     } yield ()
 
     def programLoop: Program[Input] = for {
@@ -136,58 +135,5 @@ object CandyMachine {
       Quit
     } else
       Invalid(s)
-
-  def applyRule(input: Input)(machine: MachineState): (MachineState, String) = input match {
-    case Coin =>
-      if (machine.candies == 0) {
-        (machine, "No candies Left")
-      } else if (machine.locked) {
-        val unlocked = false
-        (MachineState(unlocked, machine.candies, machine.coins + 1), "Unlocked, turn to get your candy")
-      } else {
-        (machine, "Could not accept coin, turn to get a candy")
-      }
-    case Turn =>
-      if (machine.candies == 0) {
-        (machine, "No candies Left")
-      } else if (!machine.locked) {
-        val locked = true
-        (MachineState(locked, machine.candies - 1, machine.coins), "Here is your candy")
-      } else {
-        (machine, "You need to dispose a coin to get a candy")
-      }
-  }
 }
 
-object IOInterpreter extends (IOA ~> Id) {
-  def apply[A](i: IOA[A]) = i match {
-    case Read() =>
-      System.out.print("> ")
-      StdIn.readLine()
-    case Write(msg) =>
-      System.out.println(msg)
-  }
-}
-
-object InpureMachineInterpreter extends (MachineOp ~> Id) {
-  private[this] var machine = new MachineState(true, 10, 0)
-
-  def apply[A](fa: MachineOp[A]) = fa match {
-    case UpdateState(f) =>
-      val (newMachine, output) = f(machine)
-      machine = newMachine
-      output
-    case CurrentState() => machine
-  }
-}
-
-object Test {
-
-  import Machine._, IO._, CandyMachine._
-
-  val interpreter1: CandyMachine ~> Id = InpureMachineInterpreter or IOInterpreter
-
-  def main(args: Array[String]): Unit = {
-    val evaled: Unit = program.foldMap(interpreter1)
-  }
-}
