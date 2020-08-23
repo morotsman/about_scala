@@ -53,7 +53,7 @@ object TestCandyMachine {
   val interpreter: CandyMachine ~> CandyState = PureMachineInterpreter or IOInterpreterState
 
   def main(args: Array[String]): Unit = {
-    val myInput = List[Any]("c", "t", "a", "c", "t", "q")
+    val myInput = List[Any]("s", "c", "t", "a", "c", "t", "s","q")
     val initialMachine = new MachineState(true, 50, 0)
     val initialState = TestState(myInput, List(), initialMachine)
 

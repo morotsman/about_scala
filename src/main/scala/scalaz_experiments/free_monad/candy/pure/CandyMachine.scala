@@ -116,13 +116,9 @@ object CandyMachine {
 
     def showCurrentStatus: Program[Unit] = for {
       current <- currentState
-      _ <- write(statusMessage(current))
+      _ <- write(current.toString)
     } yield ()
 
-    def statusMessage(m: MachineState): String = m match {
-      case MachineState(locked, candies, coins) if locked => s"The machine is locked and has $candies candies left"
-      case MachineState(locked, candies, coins) => s"The machine is unlocked and has $candies candies left"
-    }
 
     def updateMachine(input: Input): Program[Unit] = for {
       feedback <- updateState(applyRule(input))
