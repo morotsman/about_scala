@@ -5,8 +5,6 @@ import cats.data.EitherK
 import cats.free.Free
 import scalaz_experiments.free_monad.candy.pure.CandyRule._
 
-import scala.language.postfixOps
-
 /* Handles user interaction */
 sealed trait IOA[A]
 
