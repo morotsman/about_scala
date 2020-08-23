@@ -13,6 +13,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.util.Timeout
 import scalaz_experiments.free_monad.candy.MachineActor.{CurrentStateReply, Machine, MachineReply, UpdateStateReply}
+import scalaz_experiments.free_monad.candy.pure.CandyRule.Result
 import scalaz_experiments.free_monad.candy.pure.{CurrentState, IOA, MachineOp, MachineState, Read, UpdateState, Write}
 
 import scala.annotation.tailrec
@@ -21,13 +22,13 @@ object MachineActor {
 
   sealed trait Machine
 
-  case class UpdateState(f: MachineState => (MachineState, String), replyTo: ActorRef[UpdateStateReply]) extends Machine
+  case class UpdateState(f: MachineState => (MachineState, Result), replyTo: ActorRef[UpdateStateReply]) extends Machine
 
   case class CurrentState(replyTo: ActorRef[CurrentStateReply]) extends Machine
 
   sealed trait MachineReply
 
-  case class UpdateStateReply(result: String) extends MachineReply
+  case class UpdateStateReply(result: Result) extends MachineReply
 
   case class CurrentStateReply(machine: MachineState) extends MachineReply
 

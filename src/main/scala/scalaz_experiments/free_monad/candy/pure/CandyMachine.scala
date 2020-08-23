@@ -25,12 +25,12 @@ object IO {
 /* Represents persistence operations */
 sealed trait MachineOp[A]
 
-case class UpdateState(f: MachineState => (MachineState, String)) extends MachineOp[String]
+case class UpdateState(f: MachineState => (MachineState, Result)) extends MachineOp[Result]
 
 case class CurrentState() extends MachineOp[MachineState]
 
 class Machine[F[_]](implicit I: InjectK[MachineOp, F]) {
-  def updateState(f: MachineState => (MachineState, String)): Free[F, String] = Free.inject[MachineOp, F](UpdateState(f))
+  def updateState(f: MachineState => (MachineState, Result)): Free[F, Result] = Free.inject[MachineOp, F](UpdateState(f))
 
   def currentState: Free[F, MachineState] = Free.inject[MachineOp, F](CurrentState())
 }
@@ -125,7 +125,7 @@ object CandyMachine {
 
     def updateMachine(input: Input): Program[Unit] = for {
       feedback <- updateState(applyRule(input))
-      _ <- write(feedback)
+      _ <- write(feedback.toString)
     } yield ()
 
     main()
