@@ -66,7 +66,7 @@ object CandyMachine {
       for {
         _ <- welcome
         _ <- showPossibleInputs
-        _ <- doWhileM(programLoop)(_ != Quit)
+        _ <- doWhileM(processInput)(input => input != Quit)
       } yield ()
 
     def welcome: Program[Unit] = for {
@@ -104,7 +104,7 @@ object CandyMachine {
       _ <- if (expr(a)) doWhileM(p)(expr) else pure(())
     } yield ()
 
-    def programLoop: Program[Input] = for {
+    def processInput: Program[Input] = for {
       input <- getInput
       _ <- input match {
         case Coin => updateMachine(input)
