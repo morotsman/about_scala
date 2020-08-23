@@ -1,4 +1,4 @@
-package scalaz_experiments.free_monad.candy
+package scalaz_experiments.free_monad.candy.pure
 
 object CandyRule {
   def applyRule(input: Input)(machine: MachineState): (MachineState, String) = input match {

@@ -13,6 +13,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.util.Timeout
 import scalaz_experiments.free_monad.candy.MachineActor.{CurrentStateReply, Machine, MachineReply, UpdateStateReply}
+import scalaz_experiments.free_monad.candy.pure.{CurrentState, IOA, MachineOp, MachineState, Read, UpdateState, Write}
 
 object MachineActor {
 
@@ -90,7 +91,7 @@ object SystemInitializer {
 
 object ActorCandyMachine {
 
-  import Machine._, IO._, CandyMachine._, SystemInitializer._, ActorMachineInterpreter._
+  import scalaz_experiments.free_monad.candy.pure.Machine._, scalaz_experiments.free_monad.candy.pure.IO._, scalaz_experiments.free_monad.candy.pure.CandyMachine._, SystemInitializer._, ActorMachineInterpreter._
 
   println("ASync")
   val initialMachine = new MachineState(true, 50, 0)

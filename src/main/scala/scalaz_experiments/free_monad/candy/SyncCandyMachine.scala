@@ -2,6 +2,7 @@ package scalaz_experiments.free_monad.candy
 
 import cats.{Id, ~>}
 import scalaz.Id
+import scalaz_experiments.free_monad.candy.pure.{CurrentState, IOA, MachineOp, MachineState, Read, UpdateState, Write}
 
 import scala.io.StdIn
 
@@ -31,7 +32,7 @@ object MachineInterpreter {
 }
 
 object SyncCandyMachine {
-  import Machine._, IO._, CandyMachine._, MachineInterpreter._
+  import scalaz_experiments.free_monad.candy.pure.Machine._, scalaz_experiments.free_monad.candy.pure.IO._, scalaz_experiments.free_monad.candy.pure.CandyMachine._, MachineInterpreter._
 
   val initialMachine = new MachineState(true, 20, 0)
 

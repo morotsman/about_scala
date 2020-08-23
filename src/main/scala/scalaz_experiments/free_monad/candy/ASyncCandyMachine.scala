@@ -2,6 +2,7 @@ package scalaz_experiments.free_monad.candy
 
 import cats.{Id, ~>}
 import cats.instances.future._
+import scalaz_experiments.free_monad.candy.pure.{CurrentState, IOA, MachineOp, MachineState, Read, UpdateState, Write}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.io.StdIn
@@ -36,7 +37,7 @@ object AsyncInpureMachineInterpreter extends (MachineOp ~> Future) {
 }
 
 object AsyncCandyMachine {
-  import Machine._, IO._, CandyMachine._
+  import scalaz_experiments.free_monad.candy.pure.Machine._, scalaz_experiments.free_monad.candy.pure.IO._, scalaz_experiments.free_monad.candy.pure.CandyMachine._
 
   println("ASync")
   implicit val ec = ExecutionContext.global

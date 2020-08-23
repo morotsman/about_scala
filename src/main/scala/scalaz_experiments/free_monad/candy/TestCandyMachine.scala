@@ -2,6 +2,7 @@ package scalaz_experiments.free_monad.candy
 
 import cats.data.State
 import cats.{Id, ~>}
+import scalaz_experiments.free_monad.candy.pure.{CurrentState, IOA, MachineOp, MachineState, Read, UpdateState, Write}
 
 object Test {
 
@@ -47,7 +48,7 @@ object Test {
 
 object TestCandyMachine {
 
-  import Machine._, IO._, CandyMachine._, Test._
+  import scalaz_experiments.free_monad.candy.pure.Machine._, scalaz_experiments.free_monad.candy.pure.IO._, scalaz_experiments.free_monad.candy.pure.CandyMachine._, Test._
 
   val interpreter: CandyMachine ~> CandyState = PureMachineInterpreter or IOInterpreterState
 

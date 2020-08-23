@@ -1,11 +1,11 @@
-package scalaz_experiments.free_monad.candy
+package scalaz_experiments.free_monad.candy.pure
 
-import cats.data.{EitherK, State}
+import cats.InjectK
+import cats.data.EitherK
 import cats.free.Free
-import cats.{Id, InjectK, ~>}
+import scalaz_experiments.free_monad.candy.pure.CandyRule._
 
 import scala.language.postfixOps
-import CandyRule._
 
 /* Handles user interaction */
 sealed trait IOA[A]
@@ -59,7 +59,8 @@ object CandyMachine {
   type Program[A] = Free[CandyMachine, A]
 
   def program(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[Unit] = {
-    import I._, D._
+    import D._
+    import I._
 
     def main(): Program[Unit] =
       for {
