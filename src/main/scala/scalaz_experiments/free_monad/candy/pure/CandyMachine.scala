@@ -49,8 +49,10 @@ case object Quit extends Input
 
 case object State extends Input
 
+case object HELP extends Input
+
 case class Invalid(s: String) extends Input {
-  override def toString: String = s"Sorry, $s is not a valid input"
+  override def toString: String = s"Sorry, '$s' is not a valid input"
 }
 
 object CandyMachine {
@@ -78,6 +80,7 @@ object CandyMachine {
       _ <- write("c: insert coin")
       _ <- write("t: turn")
       _ <- write("s: get the current state of the machine")
+      _ <- write("h: help")
       _ <- write("q: quit")
       _ <- newLine
     } yield ()
@@ -91,11 +94,10 @@ object CandyMachine {
 
     def pure[A](i: A): Program[A] = Free.pure[CandyMachine, A](i)
 
-    def validInput(i: Input): Boolean = i == Turn || i == Coin || i == Quit || i == State
+    def validInput(i: Input): Boolean = i == Turn || i == Coin || i == Quit || i == State || i == HELP
 
     def handleInvalidInput(i: Input): Program[Input] = for {
       _ <- write(i.toString)
-      - <- showPossibleInputs
       r <- getInput
     } yield r
 
@@ -110,6 +112,7 @@ object CandyMachine {
         case Coin => updateMachine(input)
         case Turn => updateMachine(input)
         case State => showCurrentStatus
+        case HELP => showPossibleInputs
         case Quit => pure(())
       }
     } yield input
@@ -133,10 +136,12 @@ object CandyMachine {
       Coin
     else if (s == "t")
       Turn
-    else if (s == "q") {
+    else if (s == "q")
       Quit
-    } else if(s == "s")
+    else if(s == "s")
       State
+    else if(s == "h")
+      HELP
     else
       Invalid(s)
 }
