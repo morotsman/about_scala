@@ -1,7 +1,6 @@
 package scalaz_experiments.free_monad.candy
 
 import cats.{Id, ~>}
-import scalaz.Id
 import scalaz_experiments.free_monad.candy.pure.{CurrentState, IOA, MachineOp, MachineState, Read, UpdateState, Write}
 
 import scala.io.StdIn

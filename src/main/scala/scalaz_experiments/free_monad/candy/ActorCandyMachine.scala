@@ -15,6 +15,8 @@ import akka.util.Timeout
 import scalaz_experiments.free_monad.candy.MachineActor.{CurrentStateReply, Machine, MachineReply, UpdateStateReply}
 import scalaz_experiments.free_monad.candy.pure.{CurrentState, IOA, MachineOp, MachineState, Read, UpdateState, Write}
 
+import scala.annotation.tailrec
+
 object MachineActor {
 
   sealed trait Machine
