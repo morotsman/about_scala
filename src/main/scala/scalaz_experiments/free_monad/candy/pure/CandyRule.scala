@@ -1,7 +1,9 @@
 package scalaz_experiments.free_monad.candy.pure
 
 object CandyRule {
-  def applyRule(input: Input)(machine: MachineState): (MachineState, String) = input match {
+  type Result = String
+
+  def applyRule(input: Input)(machine: MachineState): (MachineState, Result) = input match {
     case Coin =>
       if (machine.candies == 0) {
         (machine, "No candies Left")
