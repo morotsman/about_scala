@@ -118,7 +118,7 @@ object ActorCandyMachine {
   def setupSystem(): Future[SystemContext] = system.ask((ref: ActorRef[SystemContext]) => Setup(ref))
 
   def runProgram(r: SystemContext): Future[Unit] = {
-    val interpreter: CandyMachine ~> Future = actorMachineInterpreter(r.machineActor) or AsyncIOInterpreter
+    val interpreter: CandyMachine ~> Future = actorMachineInterpreter(r.machineActor) or ActorIOInterpreter
     program.foldMap(interpreter)
   }
 }
