@@ -7,6 +7,7 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import cats.{Id, Monad, ~>}
 
+import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.io.StdIn
@@ -23,6 +24,7 @@ object EchoServer2 {
     } yield r
 
     override def tailRecM[A, B](ia: A)(f: A => EchoType[Either[A, B]]): EchoType[B] = (s: String) => {
+      // TODO Oops not tailrec, fix it
       def go(a: A): Future[B] = {
         for {
           eab <- f(a)(s)
