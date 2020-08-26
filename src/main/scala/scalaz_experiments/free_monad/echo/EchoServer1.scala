@@ -9,11 +9,14 @@ import cats.{Id, Monad, ~>}
 
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.io.StdIn
 import scala.util.{Failure, Success}
 
-object EchoServer2 {
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
+object EchoServer1 {
   type EchoType[A] = Function1[String, Future[A]]
 
   implicit def toFuture: Monad[EchoType] = new Monad[EchoType] {
@@ -24,42 +27,64 @@ object EchoServer2 {
     } yield r
 
     override def tailRecM[A, B](ia: A)(f: A => EchoType[Either[A, B]]): EchoType[B] = (s: String) => {
-      // TODO Oops not tailrec, fix it
+      // Oops, not tailrec
       def go(a: A): Future[B] = {
         for {
           eab <- f(a)(s)
           r <- eab match {
-            case Right(b) => Future {b}
+            case Right(b) => Future {
+              b
+            }
             case Left(nextA) => go(nextA)
           }
-        } yield  r
+        } yield r
       }
 
-      go(ia)
+      def ugly(a: A): Future[B] = {
+        var result: Option[Future[B]] = Option.empty
+        var currentA = a
+        do {
+          val feab: Future[Either[A, B]] = f(currentA)(s)
+          val eab: Either[A, B] = Await.result(feab, 1000 millis)
+          eab match {
+            case Right(b) =>
+              result = Option(Future {
+                b
+              })
+            case Left(nextA) =>
+              currentA = nextA
+          }
+        } while (result.isEmpty)
+
+        result.get
+      }
+
+      ugly(ia)
     }
 
-    override def pure[A](a: A): EchoType[A] = (_) => Future {
-      a
-    }
+    override def pure[A](a: A): EchoType[A] = (_) =>
+      Future {
+        a
+      }
   }
 
-  def testCompiler: EchoA ~> EchoType =
+  def toFutureCompiler: EchoA ~> EchoType =
     new (EchoA ~> EchoType) {
       override def apply[A](fa: EchoA[A]): EchoType[A] = fa match {
         case Read() =>
           (a: String) =>
             Future {
-              (a + a).asInstanceOf[A]
+              a.asInstanceOf[A]
             }
       }
     }
 
-  val handler: (String) => Future[String] = PureEcho.program.foldMap(testCompiler)
+  val handler: (String) => Future[String] = PureEcho.program.foldMap(toFutureCompiler)
 
   val route =
     path("echo" / Segment) { (a) => {
       onComplete(handler(a)) {
-        case Success(value) => complete(s"Echo new: $value")
+        case Success(value) => complete(s"Echo: $value")
         case Failure(ex) => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
       }
     }
