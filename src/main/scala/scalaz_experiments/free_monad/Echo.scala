@@ -1,7 +1,8 @@
 package scalaz_experiments.free_monad
 
-import scalaz._
-import Scalaz._
+import cats._
+import cats.free.Free
+import cats.implicits._
 import scalaz_experiments.free_monad.Echo.{Echo, print, printLn, read}
 
 import scala.io.StdIn
@@ -67,7 +68,7 @@ object EchoEchoEcho {
 
   import EchoProgram._
 
-  def compilerWithSideEffects: EchoA ~> Id.Id =
+  def compilerWithSideEffects: EchoA ~> Id =
     new (EchoA ~> Id) {
       def apply[A](fa: EchoA[A]): Id[A] = fa match {
         case Read() =>
