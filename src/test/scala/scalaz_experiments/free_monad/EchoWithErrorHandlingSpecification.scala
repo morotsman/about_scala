@@ -2,10 +2,13 @@ package scalaz_experiments.free_monad
 
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
-import scalaz._
+import cats._
+import cats.data.State
+import cats.free.Free
+import cats.implicits._
 import scalaz_experiments.free_monad.EchoProgramWithErrorHandling.program
 
-import scala.util.{Try, Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 object EchoWithErrorHandlingSpecification extends Properties("Echo") {
 
@@ -37,7 +40,7 @@ object EchoWithErrorHandlingSpecification extends Properties("Echo") {
   property("echo") = forAll { (input: List[String]) =>
     val myInput = input.filter(_ != "q").appended("q")
 
-    val result: (Buffers[Any], Try[Unit]) = program.foldMap(pureCompilerNiceOutput).run(Buffers(myInput, List()))
+    val result: (Buffers[Any], Try[Unit]) = program.foldMap(pureCompilerNiceOutput).run(Buffers(myInput, List())).value
 
     val hello = List(
       "The great echo program!",
@@ -58,7 +61,7 @@ object EchoWithErrorHandlingSpecification extends Properties("Echo") {
   property("read error") = forAll { (input: List[String]) =>
     val myInput = input.filter(_ != "q").appended("q")
 
-    val result: (Buffers[Any], Try[Unit]) = program.foldMap(readError).run(Buffers(myInput, List()))
+    val result: (Buffers[Any], Try[Unit]) = program.foldMap(readError).run(Buffers(myInput, List())).value
 
     val hello = List(
       "The great echo program!",
@@ -92,7 +95,7 @@ object EchoWithErrorHandlingSpecification extends Properties("Echo") {
   property("print error") = forAll { (input: List[String]) =>
     val myInput = input.filter(_ != "q").appended("q")
 
-    val result: (Buffers[Any], Try[Unit]) = program.foldMap(printError).run(Buffers(myInput, List()))
+    val result: (Buffers[Any], Try[Unit]) = program.foldMap(printError).run(Buffers(myInput, List())).value
 
     result._2 == Try(throw new RuntimeException("Failed to write"))
     List() == result._1.out.reverse
