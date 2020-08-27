@@ -1,9 +1,8 @@
-package scalaz_experiments.free_monad
+package scalaz_experiments.free_monad.echo.simple_echo
 
 import cats._
 import cats.free.Free
-import cats.implicits._
-import scalaz_experiments.free_monad.Echo.{Echo, print, printLn, read}
+import scalaz_experiments.free_monad.echo.simple_echo.Echo.{Echo, print, printLn, read}
 
 import scala.io.StdIn
 import scala.util.Try

@@ -1,12 +1,32 @@
-package scalaz_experiments.free_monad
+package scalaz_experiments.free_monad.echo.echo_with_error_handling
 
-import cats._
 import cats.free.Free
-import cats.implicits._
-import scalaz_experiments.free_monad.Echo.{Echo, print, printLn, read}
+import cats.{Id, _}
+import scalaz_experiments.free_monad.echo.echo_with_error_handling.Echo._
 
 import scala.io.StdIn
-import scala.util.{Try, Failure, Success}
+import scala.util.{Failure, Success, Try}
+
+sealed trait EchoA[A]
+
+case class Read[A]() extends EchoA[Try[A]]
+
+case class PrintLn[A](a: A) extends EchoA[Try[Unit]]
+
+case class Print[A](a: A) extends EchoA[Try[Unit]]
+
+object Echo {
+  type Echo[A] = Free[EchoA, A]
+
+  def read[A](): Echo[Try[A]] =
+    Free.liftF[EchoA, Try[A]](Read[A]())
+
+  def printLn[A](a: A): Echo[Try[Unit]] =
+    Free.liftF[EchoA, Try[Unit]](PrintLn[A](a))
+
+  def print[A](a: A): Echo[Try[Unit]] =
+    Free.liftF[EchoA, Try[Unit]](Print[A](a))
+}
 
 object EchoProgramWithErrorHandling {
   def program: Echo[Try[Unit]] = for {
@@ -59,8 +79,6 @@ object EchoProgramWithErrorHandling {
 
 object EchoEchoEchoWithErrorHandling {
 
-  import EchoProgram._
-
   def compilerWithSideEffects: EchoA ~> Id =
     new (EchoA ~> Id) {
       def apply[A](fa: EchoA[A]): Id[A] = fa match {
@@ -74,7 +92,7 @@ object EchoEchoEchoWithErrorHandling {
     }
 
   def main(args: Array[String]): Unit = {
-    program.foldMap(compilerWithSideEffects)
+    EchoProgramWithErrorHandling.program.foldMap(compilerWithSideEffects)
   }
 
 }

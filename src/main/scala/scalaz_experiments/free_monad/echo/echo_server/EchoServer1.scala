@@ -1,18 +1,19 @@
-package scalaz_experiments.free_monad.echo
+package scalaz_experiments.free_monad.echo.echo_server
 
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server.Directives.{complete, onComplete, path}
+import cats.{Monad, ~>}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
-import cats.{Id, Monad, ~>}
 
-import scala.annotation.tailrec
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 import scala.io.StdIn
 import scala.util.{Failure, Success}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.language.postfixOps
 

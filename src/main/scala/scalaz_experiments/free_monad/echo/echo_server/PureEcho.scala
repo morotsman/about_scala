@@ -1,11 +1,9 @@
-package scalaz_experiments.free_monad.echo
+package scalaz_experiments.free_monad.echo.echo_server
 
 import cats.free.Free
 import cats.free.Free.liftF
-import cats.arrow.FunctionK
 import cats.{Id, ~>}
 
-import scala.collection.mutable
 import scala.io.StdIn
 
 sealed trait EchoA[A]

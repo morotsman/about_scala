@@ -5,7 +5,8 @@ import org.scalacheck.Properties
 import cats._
 import cats.data.State
 import cats.implicits._
-import scalaz_experiments.free_monad.EchoProgram.program
+import scalaz_experiments.free_monad.echo.simple_echo.{EchoA, Print, PrintLn, Read}
+import scalaz_experiments.free_monad.echo.simple_echo.EchoProgram.program
 
 import scala.util.Try
 
