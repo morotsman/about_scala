@@ -5,7 +5,7 @@ import org.scalacheck.Properties
 import cats._
 import cats.data.State
 import cats.implicits._
-import scalaz_experiments.free_monad.echo.simple_echo.{EchoA, Print, PrintLn, Read}
+import scalaz_experiments.free_monad.echo.simple_echo.{EchoA, EchoProgram, Print, PrintLn, Read}
 import scalaz_experiments.free_monad.echo.simple_echo.EchoProgram.program
 
 import scala.util.Try
@@ -21,13 +21,13 @@ object EchoSpecification extends Properties("Echo") {
         old <- State.get
         _ <- State.modify(addToOutput(old.in.head))
         _ <- State.modify(addToInput(old.in.tail))
-      } yield Try(old.in.head)
+      } yield old.in.head.asInstanceOf[A]
       case PrintLn(output) => for {
         _ <- State.modify(addToOutput(output))
-      } yield Try(())
+      } yield ()
       case Print(output) => for {
         _ <- State.modify(addToOutput(output))
-      } yield Try(())
+      } yield ()
     }
   }
 
@@ -40,7 +40,7 @@ object EchoSpecification extends Properties("Echo") {
   property("echo") = forAll { (input: List[String]) =>
     val myInput = input.filter(_ != "q").appended("q")
 
-    val result: (Buffers[Any], Try[Unit]) = program.foldMap(pureCompilerNiceOutput).run(Buffers(myInput, List())).value
+    val result: (Buffers[Any], Unit) = program.foldMap(pureCompilerNiceOutput).run(Buffers(myInput, List())).value
 
     val hello = List(
       "The great echo program!",

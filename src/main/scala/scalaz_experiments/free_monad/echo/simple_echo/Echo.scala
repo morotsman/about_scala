@@ -9,27 +9,27 @@ import scala.util.Try
 
 sealed trait EchoA[A]
 
-case class Read[A]() extends EchoA[Try[A]]
+case class Read[A]() extends EchoA[A]
 
-case class PrintLn[A](a: A) extends EchoA[Try[Unit]]
+case class PrintLn[A](a: A) extends EchoA[Unit]
 
-case class Print[A](a: A) extends EchoA[Try[Unit]]
+case class Print[A](a: A) extends EchoA[Unit]
 
 object Echo {
   type Echo[A] = Free[EchoA, A]
 
-  def read[A](): Echo[Try[A]] =
-    Free.liftF[EchoA, Try[A]](Read[A]())
+  def read[A](): Echo[A] =
+    Free.liftF[EchoA, A](Read[A]())
 
-  def printLn[A](a: A): Echo[Try[Unit]] =
-    Free.liftF[EchoA, Try[Unit]](PrintLn[A](a))
+  def printLn[A](a: A): Echo[Unit] =
+    Free.liftF[EchoA, Unit](PrintLn[A](a))
 
-  def print[A](a: A): Echo[Try[Unit]] =
-    Free.liftF[EchoA, Try[Unit]](Print[A](a))
+  def print[A](a: A): Echo[Unit] =
+    Free.liftF[EchoA, Unit](Print[A](a))
 }
 
 object EchoProgram {
-  def program: Echo[Try[Unit]] = for {
+  def program: Echo[Unit] = for {
     _ <- greet
     s <- loop
   } yield (s)
@@ -39,26 +39,26 @@ object EchoProgram {
     r <- printLn("'q' to quit")
   } yield r
 
-  def loop: Echo[Try[Unit]] = for {
+  def loop: Echo[Unit] = for {
     in <- readFromPrompt
     _ <- echo(in)
     s <- if (quit(in)) goodbye else loop
   } yield s
 
-  private def readFromPrompt: Echo[Try[String]] = for {
+  private def readFromPrompt: Echo[String] = for {
     _ <- print("> ")
     s <- read[String]()
   } yield s
 
-  private def echo[A](in: Try[A]): Echo[Try[Unit]] = for {
-    _ <- printLn(s"You wrote: '${in.get}'")
+  private def echo[A](in: A): Echo[Unit] = for {
+    _ <- printLn(s"You wrote: '${in}'")
     r <- printLn("")
   } yield r
 
-  private def quit(st: Try[String]): Boolean =
-    st.filter(_ == "q").isSuccess
+  private def quit(st: String): Boolean =
+    st == "q"
 
-  private def goodbye: Echo[Try[Unit]]  = for {
+  private def goodbye: Echo[Unit]  = for {
     r <- printLn("Hope to see you again soon, goodbye!")
   } yield (r)
 }
@@ -71,11 +71,11 @@ object EchoEchoEcho {
     new (EchoA ~> Id) {
       def apply[A](fa: EchoA[A]): Id[A] = fa match {
         case Read() =>
-          Try(StdIn.readLine)
+          StdIn.readLine.asInstanceOf[A]
         case PrintLn(s) =>
-          Try(System.out.println(s))
+          System.out.println(s)
         case Print(s) =>
-          Try(System.out.print(s))
+          System.out.print(s)
       }
     }
 
