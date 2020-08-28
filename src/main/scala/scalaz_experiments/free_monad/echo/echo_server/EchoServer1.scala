@@ -60,7 +60,7 @@ object EchoServer1 {
         result.get
       }
 
-      ugly(ia)
+      go(ia)
     }
 
     override def pure[A](a: A): EchoType[A] = (_) =>
