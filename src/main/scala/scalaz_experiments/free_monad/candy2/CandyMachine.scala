@@ -8,15 +8,15 @@ object CandyMachine {
 
   case class Read[A]() extends IOA[A]
 
-  trait Command
+  trait Request[A]
 
-  case class CreateMachine() extends Command
+  case class CreateMachine[A]() extends Request[A]
 
-  case class GetMachineState(id: Long) extends Command
+  case class GetMachineState[A](id: Long) extends Request[A]
 
-  case class InsertCoin(id: Long) extends Command
+  case class InsertCoin[A](id: Long) extends Request[A]
 
-  case class Turn(id: Long) extends Command
+  case class Turn[A](id: Long) extends Request[A]
 
   trait Response
 
@@ -33,8 +33,8 @@ object CandyMachine {
   object CandyProgram {
     import IO._
 
-    def program[A]: IO[Response] =
-      read[Command]().map {
+    def program: IO[Response] =
+      read[Request[Response]]().map {
         case CreateMachine() => SimpleResponse("Create machine")
         case GetMachineState(id) => SimpleResponse("GetMachineState")
         case InsertCoin(id) => SimpleResponse("InsertCoin")

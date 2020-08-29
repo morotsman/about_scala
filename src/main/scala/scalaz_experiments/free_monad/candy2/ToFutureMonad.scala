@@ -1,7 +1,7 @@
 package scalaz_experiments.free_monad.candy2
 
 import cats.Monad
-import scalaz_experiments.free_monad.candy2.CandyMachine.Command
+import scalaz_experiments.free_monad.candy2.CandyMachine.{Request, Response}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -9,16 +9,16 @@ import scala.language.postfixOps
 import scala.concurrent.{Await, Future}
 
 object ToFutureMonad {
-  type CandyType[A] = Function1[Command, Future[A]]
+  type CandyType[A] = Function1[Request[Response], Future[A]]
 
   implicit def toFuture: Monad[CandyType] = new Monad[CandyType] {
 
-    override def flatMap[A, B](fa: CandyType[A])(f: A => CandyType[B]): CandyType[B] = (s: Command) => for {
+    override def flatMap[A, B](fa: CandyType[A])(f: A => CandyType[B]): CandyType[B] = (s: Request[Response]) => for {
       a <- fa(s)
       r <- f(a)(s)
     } yield r
 
-    override def tailRecM[A, B](ia: A)(f: A => CandyType[Either[A, B]]): CandyType[B] = (s: Command) => {
+    override def tailRecM[A, B](ia: A)(f: A => CandyType[Either[A, B]]): CandyType[B] = (s: Request[Response]) => {
       // Oops, not tailrec
       def go(a: A): Future[B] = {
         for {

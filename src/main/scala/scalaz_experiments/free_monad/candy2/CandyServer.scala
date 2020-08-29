@@ -55,14 +55,14 @@ object CandyServer {
     new (IOA ~> CandyType) {
       override def apply[A](fa: IOA[A]): CandyType[A] = fa match {
         case Read() =>
-          (a: Command) =>
+          (a: Request[Response]) =>
             Future {
               a.asInstanceOf[A]
             }
       }
     }
 
-  val handler: (Command) => Future[Response] = CandyProgram.program.foldMap(toFutureCompiler)
+  val handler: (Request[Response]) => Future[Response] = CandyProgram.program.foldMap(toFutureCompiler)
 
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem(Behaviors.empty, "my-system")
