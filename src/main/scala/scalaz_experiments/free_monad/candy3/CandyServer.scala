@@ -76,9 +76,10 @@ object CandyServer {
         machines.get(id).get
       }
       case InitialState(machine) => Future {
-        machines(id) = machine.copy(id = Some(id))
+        val newMachine = machine.copy(id = Some(id))
+        machines(id) = newMachine
         id = id + 1
-        machines(id)
+        newMachine
       }
     }
   }

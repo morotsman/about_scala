@@ -24,14 +24,18 @@ object CandyRule {
     override def toString: String = "You need to dispose a coin to get a candy"
   }
 
-  /*
+  sealed trait Input
+
+  case object Coin extends Input
+
+  case object Turn extends Input
+
   def applyRule(input: Input)(machine: MachineState): (MachineState, Result) = input match {
     case Coin =>
       if (machine.candies == 0) {
         (machine, NO_CANDIES_LEFT)
       } else if (machine.locked) {
-        val unlocked = false
-        (MachineState(unlocked, machine.candies, machine.coins + 1), UNLOCKED)
+        (machine.copy(locked = false, coins = machine.coins + 1), UNLOCKED)
       } else {
         (machine, ALREADY_UNLOCKED)
       }
@@ -39,12 +43,10 @@ object CandyRule {
       if (machine.candies == 0) {
         (machine, NO_CANDIES_LEFT)
       } else if (!machine.locked) {
-        val locked = true
-        (MachineState(locked, machine.candies - 1, machine.coins), CANDY_DISPOSED)
+        (machine.copy(locked = true, candies = machine.candies - 1), UNLOCKED)
       } else {
         (machine, DISPOSE_A_COIN)
       }
   }
 
-   */
 }

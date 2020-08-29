@@ -2,6 +2,7 @@ package scalaz_experiments.free_monad.candy3.pure
 
 import cats.data.EitherK
 import cats.free.Free
+import scalaz_experiments.free_monad.candy3.pure.CandyRule.Coin
 
 trait Request
 
@@ -26,8 +27,16 @@ object CandyProgram {
     import D._
     import I._
 
+    def handleRequest(r: Request): Program[Response] = r match {
+      case CreateMachine(m) => initialState(m).map(m => SimpleResponse(m.toString))
+      case GetMachineState(id) => currentState(id).map(m => SimpleResponse(m.toString))
+      case InsertCoin(id) => updateState(id, CandyRule.applyRule(CandyRule.Coin)).map(m => SimpleResponse(m.toString))
+      case Turn(id) => updateState(id, CandyRule.applyRule(CandyRule.Turn)).map(m => SimpleResponse(m.toString))
+    }
+
     for {
       r <- receive(request)
-    } yield SimpleResponse(r.toString)
+      response <- handleRequest(r)
+    } yield response
   }
 }

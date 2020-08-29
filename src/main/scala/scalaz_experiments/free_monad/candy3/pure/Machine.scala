@@ -17,6 +17,8 @@ class Machine[F[_]](implicit I: InjectK[MachineOp, F]) {
   def updateState(id: Long, f: MachineState => (MachineState, Result)): Free[F, Result] = Free.inject[MachineOp, F](UpdateState(id, f))
 
   def currentState(id: Long): Free[F, MachineState] = Free.inject[MachineOp, F](CurrentState(id))
+
+  def initialState(m: MachineState): Free[F, MachineState] = Free.inject[MachineOp, F](InitialState(m))
 }
 
 object Machine {
