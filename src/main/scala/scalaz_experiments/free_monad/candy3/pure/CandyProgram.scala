@@ -5,7 +5,7 @@ import cats.free.Free
 
 trait Request
 
-case class CreateMachine[A]() extends Request
+case class CreateMachine[A](m: MachineState) extends Request
 
 case class GetMachineState[A](id: Long) extends Request
 

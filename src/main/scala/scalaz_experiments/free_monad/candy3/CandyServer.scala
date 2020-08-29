@@ -21,7 +21,7 @@ object CandyServer {
     concat(
       post {
         path("candy") {
-          onComplete(handler(CreateMachine())) {
+          onComplete(handler(CreateMachine(MachineState(None, true, 10, 0)))) {
             case Success(value) => complete(s"Echo: $value")
             case Failure(ex) => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
           }
@@ -62,16 +62,23 @@ object CandyServer {
   }
 
   object AsyncInpureMachineInterpreter extends (MachineOp ~> Future) {
-    private[this] var machine = new MachineState(true, 10, 0)
+    // really ugly, I know. Will replace with an actor later
+    private[this] var id = 0L
+    private val machines = scala.collection.mutable.Map[Long, MachineState]()
 
     def apply[A](fa: MachineOp[A]) = fa match {
-      case UpdateState(f) => Future.successful {
-        val (newMachine, output) = f(machine)
-        machine = newMachine
+      case UpdateState(id, f) => Future.successful {
+        val (newMachine, output) = f(machines.get(id).get)
+        machines(id) = newMachine
         output
       }
-      case CurrentState() => Future.successful {
-        machine
+      case CurrentState(id) => Future.successful {
+        machines.get(id).get
+      }
+      case InitialState(machine) => Future {
+        machines(id) = machine.copy(id = Some(id))
+        id = id + 1
+        machines(id)
       }
     }
   }

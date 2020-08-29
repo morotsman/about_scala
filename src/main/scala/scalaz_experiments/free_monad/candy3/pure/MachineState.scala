@@ -1,3 +1,3 @@
 package scalaz_experiments.free_monad.candy3.pure
 
-case class MachineState(locked: Boolean, candies: Int, coins: Int)
+case class MachineState(id: Option[Long] = None, locked: Boolean, candies: Int, coins: Int)
