@@ -53,38 +53,7 @@ object CandyServer {
       }
     )
 
-  object AsyncIOInterpreter extends (IOA ~> Future) {
-    def apply[A](i: IOA[A]): Future[A] = i match {
-      case Receive(request) => for {
-        i <- Future.successful(request)
-      } yield i
-    }
-  }
-
-  object AsyncInpureMachineInterpreter extends (MachineOp ~> Future) {
-    // really ugly, I know. Will replace with an actor later
-    private[this] var id = 0L
-    private val machines = scala.collection.mutable.Map[Long, MachineState]()
-
-    def apply[A](fa: MachineOp[A]) = fa match {
-      case UpdateState(id, f) => Future.successful {
-        val (newMachine, output) = f(machines.get(id).get)
-        machines(id) = newMachine
-        output
-      }
-      case CurrentState(id) => Future.successful {
-        machines.get(id).get
-      }
-      case InitialState(machine) => Future {
-        val newMachine = machine.copy(id = Some(id))
-        machines(id) = newMachine
-        id = id + 1
-        newMachine
-      }
-    }
-  }
-
-  val interpreter: CandyMachine ~> Future = AsyncInpureMachineInterpreter or AsyncIOInterpreter
+  val interpreter: CandyMachine ~> Future = SimpleAsyncMachineInterpreter or SimpleAsyncIOInterpreter
 
   def handler(r: Request): Future[Response] =
     CandyProgram.program(r).foldMap(interpreter)
