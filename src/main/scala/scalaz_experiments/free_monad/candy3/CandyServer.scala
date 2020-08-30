@@ -15,8 +15,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.io.StdIn
 import scala.util.{Failure, Success, Try}
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import spray.json._
 import Types._
 
 import akka.http.scaladsl.server.Directives
@@ -87,7 +85,6 @@ class CandyServer extends Directives with JsonSupport {
     val tmp: ProgramResult[MachineState] = CandyProgram.program(r).foldMap(interpreter)
     tmp.value
   }
-
 
 }
 
