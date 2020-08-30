@@ -3,8 +3,9 @@ package scalaz_experiments.free_monad.candy3.pure
 import cats.data.EitherK
 import cats.free.Free
 import scalaz_experiments.free_monad.candy3.pure.Request._
-import scalaz_experiments.free_monad.candy3.pure.Result._
 import scalaz_experiments.free_monad.candy3.pure.algebra.{IO, IOA, Machine, MachineOp}
+
+import scala.util.Try
 
 object Request {
   trait Request
@@ -22,30 +23,7 @@ trait Response
 
 case class SimpleResponse(s: String) extends Response
 
-object Result {
-  sealed trait Result
 
-  case object NO_CANDIES_LEFT extends Result {
-    override def toString: String = "No candies Left"
-  }
-
-  case object UNLOCKED extends Result {
-    override def toString: String = "Unlocked, turn to get your candy"
-  }
-
-  case object ALREADY_UNLOCKED extends Result {
-    override def toString: String = "Could not accept coin, turn to get a candy"
-  }
-
-  case object CANDY_DISPOSED extends Result {
-    override def toString: String = "Here is your candy"
-  }
-
-  case object DISPOSE_A_COIN extends Result {
-    override def toString: String = "You need to dispose a coin to get a candy"
-  }
-
-}
 
 object CandyProgram {
   type CandyMachine[A] = EitherK[MachineOp, IOA, A]
@@ -70,22 +48,24 @@ object CandyProgram {
 
     case object Turn extends Input
 
-    def applyRule(input: Input)(machine: MachineState): (MachineState, Result) = input match {
+
+
+    def applyRule(input: Input)(machine: MachineState): Try[MachineState] = input match {
       case Coin =>
         if (machine.candies == 0) {
-          (machine, NO_CANDIES_LEFT)
+          Try(throw new IllegalStateException("No candies left"))
         } else if (machine.locked) {
-          (machine.copy(locked = false, coins = machine.coins + 1), UNLOCKED)
+          Try(machine.copy(locked = false, coins = machine.coins + 1))
         } else {
-          (machine, ALREADY_UNLOCKED)
+          Try(throw new IllegalStateException("A coin has already been disposed"))
         }
       case Turn =>
         if (machine.candies == 0) {
-          (machine, NO_CANDIES_LEFT)
+          Try(throw new IllegalStateException("No candies left"))
         } else if (!machine.locked) {
-          (machine.copy(locked = true, candies = machine.candies - 1), UNLOCKED)
+          Try(machine.copy(locked = true, candies = machine.candies - 1))
         } else {
-          (machine, DISPOSE_A_COIN)
+          Try(throw new IllegalStateException("No coin has been disposed"))
         }
     }
 

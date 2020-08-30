@@ -2,10 +2,11 @@ package scalaz_experiments.free_monad.candy3
 
 import cats.~>
 import scalaz_experiments.free_monad.candy3.pure.algebra.{CurrentState, InitialState, MachineOp, UpdateState}
-import scalaz_experiments.free_monad.candy3.pure.{MachineState}
+import scalaz_experiments.free_monad.candy3.pure.MachineState
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Try
 
 object SimpleAsyncMachineInterpreter extends (MachineOp ~> Future) {
   // really ugly, I know. Will replace with an actor later
@@ -14,18 +15,22 @@ object SimpleAsyncMachineInterpreter extends (MachineOp ~> Future) {
 
   def apply[A](fa: MachineOp[A]) = fa match {
     case UpdateState(id, f) => Future.successful {
-      val (newMachine, output) = f(machines.get(id).get)
-      machines(id) = newMachine
-      output
+      val newMachine = for {
+        om <- Try(machines(id))
+        nm <- f(om)
+      } yield nm
+
+      newMachine.foreach(nm => machines(id) = nm)
+      newMachine
     }
     case CurrentState(id) => Future.successful {
-      machines.get(id).get
+      Try(machines(id))
     }
     case InitialState(machine) => Future {
       val newMachine = machine.copy(id = Some(id))
       machines(id) = newMachine
       id = id + 1
-      newMachine
+      Try(newMachine)
     }
   }
 }
