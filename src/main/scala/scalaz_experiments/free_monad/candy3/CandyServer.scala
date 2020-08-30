@@ -39,7 +39,7 @@ class CandyServer extends Directives with JsonSupport {
           entity(as[MachineState]) { machine =>
             onComplete(handler(CreateMachine(machine))) {
               case Success(value) => toResponse(value)
-              case Failure(ex) => complete(StatusCodes.InternalServerError, Error(s"An error occurred: ${ex.getMessage}"))
+              case Failure(ex) => internalServerError(ex)
             }
           }
         }
@@ -47,7 +47,7 @@ class CandyServer extends Directives with JsonSupport {
         path("candy" / LongNumber) { (id) => {
           onComplete(handler(GetMachineState(id))) {
             case Success(value) => toResponse(value)
-            case Failure(ex) => complete(StatusCodes.InternalServerError, Error(s"An error occurred: ${ex.getMessage}"))
+            case Failure(ex) => internalServerError(ex)
           }
         }
         }
@@ -55,7 +55,7 @@ class CandyServer extends Directives with JsonSupport {
         path("candy" / LongNumber / "coin") { (id) => {
           onComplete(handler(InsertCoin(id))) {
             case Success(value) => toResponse(value)
-            case Failure(ex) => complete(StatusCodes.InternalServerError, Error(s"An error occurred: ${ex.getMessage}"))
+            case Failure(ex) => internalServerError(ex)
           }
         }
         }
@@ -63,16 +63,23 @@ class CandyServer extends Directives with JsonSupport {
         path("candy" / LongNumber / "turn") { (id) => {
           onComplete(handler(Turn(id))) {
             case Success(value) => toResponse(value)
-            case Failure(ex) => complete(StatusCodes.InternalServerError, Error(s"An error occurred: ${ex.getMessage}"))
+            case Failure(ex) => internalServerError(ex)
           }
         }
         }
       }
     )
 
+  private def internalServerError(ex: Throwable) =
+    complete(StatusCodes.InternalServerError, Error(ex.getMessage))
+
   private def toResponse(value: Either[Exception, MachineState]) = value match {
     case Right(v) => complete(v)
-    case Left(ex) => ex match {
+    case Left(ex) => mapError(ex)
+  }
+
+  private def mapError(ex: Exception) = {
+    ex match {
       case e: IllegalStateException => complete(StatusCodes.BadRequest, Error(e.getMessage))
       case e: NoSuchElementException => complete(StatusCodes.NotFound, Error(e.getMessage))
       case e => complete(StatusCodes.InternalServerError, Error(e.getMessage))
