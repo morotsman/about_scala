@@ -8,6 +8,7 @@ import akka.http.scaladsl.server.Directives._
 import cats.~>
 import cats.instances.future._
 import scalaz_experiments.free_monad.candy3.pure.CandyProgram.CandyMachine
+import scalaz_experiments.free_monad.candy3.pure.Request._
 import scalaz_experiments.free_monad.candy3.pure._
 
 import scala.concurrent.ExecutionContext.Implicits.global

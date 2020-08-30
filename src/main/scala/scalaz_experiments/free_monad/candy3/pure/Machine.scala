@@ -2,7 +2,7 @@ package scalaz_experiments.free_monad.candy3.pure
 
 import cats.InjectK
 import cats.free.Free
-import scalaz_experiments.free_monad.candy3.pure.CandyRule.Result
+import scalaz_experiments.free_monad.candy3.pure.Result.Result
 
 /* Represents state operations */
 sealed trait MachineOp[A]
