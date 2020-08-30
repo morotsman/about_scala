@@ -36,9 +36,11 @@ class CandyServer extends Directives with JsonSupport {
     concat(
       post {
         path("candy") {
-          onComplete(handler(CreateMachine(MachineState(None, true, 10, 0)))) {
-            case Success(value) => toResponse(value)
-            case Failure(ex) => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
+          entity(as[MachineState]) { machine =>
+            onComplete(handler(CreateMachine(machine))) {
+              case Success(value) => toResponse(value)
+              case Failure(ex) => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
+            }
           }
         }
       }, get {
