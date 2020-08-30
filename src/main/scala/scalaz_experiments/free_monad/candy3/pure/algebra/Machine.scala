@@ -1,7 +1,8 @@
-package scalaz_experiments.free_monad.candy3.pure
+package scalaz_experiments.free_monad.candy3.pure.algebra
 
 import cats.InjectK
 import cats.free.Free
+import scalaz_experiments.free_monad.candy3.pure.MachineState
 import scalaz_experiments.free_monad.candy3.pure.Result.Result
 
 /* Represents state operations */

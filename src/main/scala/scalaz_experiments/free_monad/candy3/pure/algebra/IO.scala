@@ -1,4 +1,4 @@
-package scalaz_experiments.free_monad.candy3.pure
+package scalaz_experiments.free_monad.candy3.pure.algebra
 
 import cats.InjectK
 import cats.free.Free

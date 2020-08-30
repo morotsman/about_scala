@@ -4,6 +4,7 @@ import cats.data.EitherK
 import cats.free.Free
 import scalaz_experiments.free_monad.candy3.pure.Request._
 import scalaz_experiments.free_monad.candy3.pure.Result._
+import scalaz_experiments.free_monad.candy3.pure.algebra.{IO, IOA, Machine, MachineOp}
 
 object Request {
   trait Request

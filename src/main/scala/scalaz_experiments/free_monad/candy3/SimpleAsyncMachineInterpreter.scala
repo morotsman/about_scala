@@ -1,10 +1,10 @@
 package scalaz_experiments.free_monad.candy3
 
 import cats.~>
-import scalaz_experiments.free_monad.candy3.pure.{CurrentState, InitialState, MachineOp, MachineState, UpdateState}
+import scalaz_experiments.free_monad.candy3.pure.algebra.{CurrentState, InitialState, MachineOp, UpdateState}
+import scalaz_experiments.free_monad.candy3.pure.{MachineState}
 
 import scala.concurrent.Future
-
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object SimpleAsyncMachineInterpreter extends (MachineOp ~> Future) {
