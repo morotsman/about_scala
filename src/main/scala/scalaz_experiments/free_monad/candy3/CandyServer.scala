@@ -25,10 +25,12 @@ import spray.json._
 
 // DTO
 final case class Machines(machines: List[MachineState])
+final case class Error(message: String)
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val machineFormat = jsonFormat4(MachineState)
   implicit val machinesFormat = jsonFormat1(Machines)
+  implicit val errorFormat = jsonFormat1(Error)
 }
 
 class CandyServer extends Directives with JsonSupport {
@@ -39,7 +41,7 @@ class CandyServer extends Directives with JsonSupport {
           entity(as[MachineState]) { machine =>
             onComplete(handler(CreateMachine(machine))) {
               case Success(value) => toResponse(value)
-              case Failure(ex) => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
+              case Failure(ex) => complete(StatusCodes.InternalServerError, Error(s"An error occurred: ${ex.getMessage}"))
             }
           }
         }
@@ -47,7 +49,7 @@ class CandyServer extends Directives with JsonSupport {
         path("candy" / LongNumber) { (id) => {
           onComplete(handler(GetMachineState(id))) {
             case Success(value) => toResponse(value)
-            case Failure(ex) => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
+            case Failure(ex) => complete(StatusCodes.InternalServerError, Error(s"An error occurred: ${ex.getMessage}"))
           }
         }
         }
@@ -55,7 +57,7 @@ class CandyServer extends Directives with JsonSupport {
         path("candy" / LongNumber / "coin") { (id) => {
           onComplete(handler(InsertCoin(id))) {
             case Success(value) => toResponse(value)
-            case Failure(ex) => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
+            case Failure(ex) => complete(StatusCodes.InternalServerError, Error(s"An error occurred: ${ex.getMessage}"))
           }
         }
         }
@@ -63,7 +65,7 @@ class CandyServer extends Directives with JsonSupport {
         path("candy" / LongNumber / "turn") { (id) => {
           onComplete(handler(Turn(id))) {
             case Success(value) => toResponse(value)
-            case Failure(ex) => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
+            case Failure(ex) => complete(StatusCodes.InternalServerError, Error(s"An error occurred: ${ex.getMessage}"))
           }
         }
         }
@@ -73,9 +75,9 @@ class CandyServer extends Directives with JsonSupport {
   private def toResponse(value: Either[Exception, MachineState]) = value match {
     case Right(v) => complete(v)
     case Left(ex) => ex match {
-      case e: IllegalStateException => complete(StatusCodes.BadRequest, e.getMessage)
-      case e: NoSuchElementException => complete(StatusCodes.NotFound, e.getMessage)
-      case e => complete(StatusCodes.InternalServerError, e.getMessage)
+      case e: IllegalStateException => complete(StatusCodes.BadRequest, Error(e.getMessage))
+      case e: NoSuchElementException => complete(StatusCodes.NotFound, Error(e.getMessage))
+      case e => complete(StatusCodes.InternalServerError, Error(e.getMessage))
     }
   }
 
