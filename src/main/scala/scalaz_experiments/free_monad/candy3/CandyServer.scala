@@ -14,7 +14,7 @@ import scalaz_experiments.free_monad.candy3.pure._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.io.StdIn
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 object CandyServer {
 
@@ -56,7 +56,7 @@ object CandyServer {
 
   val interpreter: CandyMachine ~> Future = SimpleAsyncMachineInterpreter or SimpleAsyncIOInterpreter
 
-  def handler(r: Request): Future[Response] =
+  def handler(r: Request): Future[Try[MachineState]] =
     CandyProgram.program(r).foldMap(interpreter)
 
   def main(args: Array[String]): Unit = {

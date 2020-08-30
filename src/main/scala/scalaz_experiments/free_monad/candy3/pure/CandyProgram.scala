@@ -19,36 +19,27 @@ object Request {
   case class Turn[A](id: Long) extends Request
 }
 
-trait Response
-
-case class SimpleResponse(s: String) extends Response
-
-
-
 object CandyProgram {
   type CandyMachine[A] = EitherK[MachineOp, IOA, A]
 
   type Program[A] = Free[CandyMachine, A]
 
-  def program(request: Request)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[Response] = {
+  def program(request: Request)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[Try[MachineState]] = {
     import D._
     import I._
 
-    def handleRequest(r: Request): Program[Response] = r match {
-      case CreateMachine(m) => initialState(m).map(m => SimpleResponse(m.toString))
-      case GetMachineState(id) => currentState(id).map(m => SimpleResponse(m.toString))
-      case InsertCoin(id) => updateState(id, applyRule(Coin)).map(m => SimpleResponse(m.toString))
-      case Request.Turn(id) => updateState(id, applyRule(Turn)).map(m => SimpleResponse(m.toString))
+    def handleRequest(r: Request): Program[Try[MachineState]] = r match {
+      case CreateMachine(m) => initialState(m)
+      case GetMachineState(id) => currentState(id)
+      case InsertCoin(id) => updateState(id, applyRule(Coin))
+      case Request.Turn(id) => updateState(id, applyRule(Turn))
     }
-
 
     sealed trait Input
 
     case object Coin extends Input
 
     case object Turn extends Input
-
-
 
     def applyRule(input: Input)(machine: MachineState): Try[MachineState] = input match {
       case Coin =>
