@@ -22,14 +22,14 @@ object CandyServer {
     concat(
       post {
         path("candy") {
-          onComplete(handler(CreateMachine(MachineState(None, true, 10, 0)))) {
+          onComplete(handler(CreateMachine(MachineState(None, true, 10, 0))).map(_.get)) {
             case Success(value) => complete(s"Echo: $value")
             case Failure(ex) => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
           }
         }
       }, get {
         path("candy" / LongNumber) { (id) => {
-          onComplete(handler(GetMachineState(id))) {
+          onComplete(handler(GetMachineState(id)).map(_.get)) {
             case Success(value) => complete(s"Echo: $value")
             case Failure(ex) => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
           }
@@ -37,7 +37,7 @@ object CandyServer {
         }
       }, put {
         path("candy" / LongNumber / "coin") { (id) => {
-          onComplete(handler(InsertCoin(id))) {
+          onComplete(handler(InsertCoin(id)).map(_.get)) {
             case Success(value) => complete(s"Echo: $value")
             case Failure(ex) => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
           }
@@ -45,7 +45,7 @@ object CandyServer {
         }
       }, put {
         path("candy" / LongNumber / "turn") { (id) => {
-          onComplete(handler(Turn(id))) {
+          onComplete(handler(Turn(id)).map(_.get)) {
             case Success(value) => complete(s"Echo: $value")
             case Failure(ex) => complete(StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}")
           }
