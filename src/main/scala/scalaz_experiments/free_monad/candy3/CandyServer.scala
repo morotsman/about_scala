@@ -1,6 +1,6 @@
 package scalaz_experiments.free_monad.candy3
 
-import akka.actor.typed.ActorSystem
+import akka.actor.typed.{ActorRef, ActorSystem, Scheduler}
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
@@ -12,14 +12,20 @@ import scalaz_experiments.free_monad.candy3.pure.Request._
 import scalaz_experiments.free_monad.candy3.pure._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.io.StdIn
 import scala.util.{Failure, Success, Try}
 import Types._
-
 import akka.http.scaladsl.server.Directives
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.util.Timeout
+import scalaz_experiments.free_monad.candy3.SystemInitializer.{Setup, SystemContext}
 import spray.json._
+
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
+import akka.actor.typed.scaladsl.AskPattern._
 
 // DTO
 final case class Machines(machines: List[MachineState])
@@ -31,7 +37,7 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val errorFormat = jsonFormat1(Error)
 }
 
-class CandyServer extends Directives with JsonSupport {
+class CandyServer(val interpreter: CandyMachine ~> ProgramResult) extends Directives with JsonSupport {
   val route =
     concat(
       post {
@@ -86,8 +92,6 @@ class CandyServer extends Directives with JsonSupport {
     }
   }
 
-  val interpreter: CandyMachine ~> ProgramResult = SimpleAsyncMachineInterpreter or SimpleAsyncIOInterpreter
-
   def handler(r: Request): Future[Either[Exception, MachineState]] = {
     val tmp: ProgramResult[MachineState] = CandyProgram.program(r).foldMap(interpreter)
     tmp.value
@@ -96,17 +100,33 @@ class CandyServer extends Directives with JsonSupport {
 }
 
 object CandyServer {
+
+  implicit val system: ActorSystem[Setup] =
+    ActorSystem(SystemInitializer.setup, "candy")
+
+  implicit val timeout: Timeout = 3.seconds
+  implicit val ec: ExecutionContextExecutor = system.executionContext
+
   def main(args: Array[String]): Unit = {
-    implicit val system = ActorSystem(Behaviors.empty, "my-system")
     // needed for the future flatMap/onComplete in the end
-    implicit val executionContext = system.executionContext
 
+    def setupActorSystem(): Future[SystemContext] = system.ask((ref: ActorRef[SystemContext]) => Setup(ref))
 
-    val bindingFuture = Http().newServerAt("localhost", 8090).bind(new CandyServer().route)
+    def createInterpreter(context: SystemContext) =  Future {
+      ActorMachineInterpreter.actorMachineInterpreter(context.machineActor) or SimpleAsyncIOInterpreter
+    }
+
+    def bindingFuture(interpreter: CandyMachine ~> ProgramResult) = Http().newServerAt("localhost", 8090).bind(new CandyServer(interpreter).route)
+
+    val server = for {
+      ref <- setupActorSystem()
+      interpreter <- createInterpreter(ref)
+      bf <- bindingFuture(interpreter)
+    } yield bf
 
     println(s"Server online at http://localhost:8090/\nPress RETURN to stop...")
     StdIn.readLine() // let it run until user presses return
-    bindingFuture
+    server
       .flatMap(_.unbind()) // trigger unbinding from the port
       .onComplete(_ => system.terminate()) // and shutdown when done
   }
