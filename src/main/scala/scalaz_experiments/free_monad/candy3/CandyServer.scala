@@ -1,10 +1,8 @@
 package scalaz_experiments.free_monad.candy3
 
-import akka.actor.typed.{ActorRef, ActorSystem, Scheduler}
-import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.{ActorRef, ActorSystem}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.server.Directives._
 import cats._
 import cats.implicits._
 import scalaz_experiments.free_monad.candy3.pure.CandyProgram.CandyMachine
@@ -29,6 +27,7 @@ import akka.actor.typed.scaladsl.AskPattern._
 
 // DTO
 final case class Machines(machines: List[MachineState])
+
 final case class Error(message: String)
 
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
@@ -92,10 +91,8 @@ class CandyServer(val interpreter: CandyMachine ~> ProgramResult) extends Direct
     }
   }
 
-  def handler(r: Request): Future[Either[Exception, MachineState]] = {
-    val tmp: ProgramResult[MachineState] = CandyProgram.program(r).foldMap(interpreter)
-    tmp.value
-  }
+  private def handler(r: Request): Future[Either[Exception, MachineState]] =
+    CandyProgram.program(r).foldMap(interpreter).value
 
 }
 
@@ -108,19 +105,15 @@ object CandyServer {
   implicit val ec: ExecutionContextExecutor = system.executionContext
 
   def main(args: Array[String]): Unit = {
-    // needed for the future flatMap/onComplete in the end
-
     def setupActorSystem(): Future[SystemContext] = system.ask((ref: ActorRef[SystemContext]) => Setup(ref))
 
-    def createInterpreter(context: SystemContext) =  Future {
+    def createInterpreter(context: SystemContext) =
       ActorMachineInterpreter.actorMachineInterpreter(context.machineActor) or SimpleAsyncIOInterpreter
-    }
 
     def bindingFuture(interpreter: CandyMachine ~> ProgramResult) = Http().newServerAt("localhost", 8090).bind(new CandyServer(interpreter).route)
 
     val server = for {
-      ref <- setupActorSystem()
-      interpreter <- createInterpreter(ref)
+      interpreter <- setupActorSystem().map(createInterpreter)
       bf <- bindingFuture(interpreter)
     } yield bf
 

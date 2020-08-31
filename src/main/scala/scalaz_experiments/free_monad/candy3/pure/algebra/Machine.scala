@@ -4,8 +4,6 @@ import cats.InjectK
 import cats.free.Free
 import scalaz_experiments.free_monad.candy3.pure.MachineState
 
-import scala.util.Try
-
 /* Represents state operations */
 sealed trait MachineOp[A]
 

@@ -5,8 +5,6 @@ import cats.free.Free
 import scalaz_experiments.free_monad.candy3.pure.Request._
 import scalaz_experiments.free_monad.candy3.pure.algebra.{IO, IOA, Machine, MachineOp}
 
-import scala.util.Try
-
 object Request {
   trait Request
 
