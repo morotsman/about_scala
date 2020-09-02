@@ -26,13 +26,13 @@ object Cli {
 
   def main(args: Array[String]): Unit = {
 
-
     val asyncProgram = for {
       i <- setupActorSystem().map(createInterpreter)
-      _ <- runProgram(i).value
+      _ <- runProgram(i)
     } yield ()
 
     asyncProgram.onComplete(_ => system.terminate())
+
   }
 
   def runProgram(interpreter: CandyMachine ~> ProgramResult): ProgramResult[Unit] = {

@@ -88,17 +88,17 @@ object ActorMachineInterpreter {
         val result = ref
           .ask((ref: ActorRef[UpdateStateReply]) => UpdateStateRequest(id, f, ref))
           .map(r => r.result)
-        EitherT(result)
+        result
       case CurrentState(id) =>
         val result = ref
           .ask((ref: ActorRef[CurrentStateReply]) => CurrentStateRequest(id, ref))
           .map(r => r.result)
-        EitherT(result)
+        result
       case InitialState(machine) =>
         val result = ref
           .ask((ref: ActorRef[InitialStateReply]) => InitialStateRequest(machine,   ref))
           .map(r => r.result)
-        EitherT(result)
+        result
     }
   }
 }

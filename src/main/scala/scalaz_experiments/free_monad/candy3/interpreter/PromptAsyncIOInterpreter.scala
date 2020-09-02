@@ -15,14 +15,14 @@ object PromptAsyncIOInterpreter extends (IOA ~> ProgramResult) {
   override def apply[A](i: IOA[A]): ProgramResult[A] = i match {
     case Write(message) =>
       val result = Future {
-        Right(System.out.println(message)): Either[Exception, Unit]
+        System.out.println(message)
       }
-      EitherT(result)
+      result
     case Read() =>
       val result = Future {
-        Right(StdIn.readLine()).asInstanceOf[Either[Exception, A]]
+        StdIn.readLine()
       }
-      EitherT(result)
+      result.map(a => a.asInstanceOf[A])
   }
 
 }

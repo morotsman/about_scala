@@ -91,7 +91,7 @@ class CandyServer(val interpreter: CandyMachine ~> ProgramResult) extends Direct
   }
 
   private def handler(r: Request): Future[Either[Exception, MachineState]] =
-    CandyProgram.machineProgram(r).foldMap(interpreter).value
+    CandyProgram.machineProgram(r).foldMap(interpreter)
 
 }
 

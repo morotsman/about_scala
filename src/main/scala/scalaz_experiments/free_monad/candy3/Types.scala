@@ -6,6 +6,6 @@ import scala.concurrent.Future
 
 object Types {
 
-  type ProgramResult[A] = EitherT[Future, Exception,A]// Future[Either[Exception, A]]
+  type ProgramResult[A] = Future[A]// Future[Either[Exception, A]]
 
 }

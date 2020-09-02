@@ -105,7 +105,7 @@ object CandyProgram {
   private def createMachine =
     machineProgram(CreateMachine(MachineState(locked = true, candies = 100, coins = 0)))
 
-  def machineProgram(request: Request)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[MachineState] = {
+  def machineProgram(request: Request)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[Either[Exception,MachineState]] = {
     import D._
     import I._
 
