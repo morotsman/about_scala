@@ -7,6 +7,7 @@ import scalaz_experiments.free_monad.candy3.pure.Request._
 import scalaz_experiments.free_monad.candy3.pure.algebra.{IO, IOA, Machine, MachineOp}
 
 object Request {
+
   trait Request
 
   trait CliRequest extends Request
@@ -24,6 +25,7 @@ object Request {
   case class InsertCoin(id: Long) extends MachineRequest
 
   case class Turn(id: Long) extends MachineRequest
+
 }
 
 object CandyProgram {
@@ -40,35 +42,29 @@ object CandyProgram {
       _ <- showCommands
       _ <- createMachine
       _ <- doWhileM(processInput)(input => input != QuitRequest())
-    } yield()
+    } yield ()
 
-    def processInput: Program[Request] = for {
-      request <- getRequest
-      _ <- handleRequest(request)
-    } yield request
+    def showCommands: Program[Unit] = for {
+      _ <- write("Available commands")
+      _ <- write("s - get current state of machine")
+      _ <- write("c - insert a coin")
+      _ <- write("t - turn")
+      _ <- write("h - help")
+      _ <- write("q - quit")
+    } yield ()
 
-    def handleRequest(request: Request): Program[Unit] = request match {
-      case QuitRequest() => pure(())
-      case HelpRequest() => showCommands
-      case _ => for {
-        m <- machineProgram(request)
-        _ <- write(m)
-      } yield ()
-    }
+    def createMachine =
+      machineProgram(CreateMachine(MachineState(locked = true, candies = 100, coins = 0)))
 
     def doWhileM[A](p: Program[A])(expr: => A => Boolean): Program[Unit] = for {
       a <- p
       _ <- if (expr(a)) doWhileM(p)(expr) else pure(())
     } yield ()
 
-    def showCommands: Program[Unit] = for {
-     _ <- write("Available commands")
-     _ <- write("s - get current state of machine")
-     _ <- write("c - insert a coin")
-     _ <- write("t - turn")
-     _ <- write("h - help")
-     _ <- write("q - quit")
-    } yield ()
+    def processInput: Program[Request] = for {
+      request <- getRequest
+      _ <- handleRequest(request)
+    } yield request
 
     def getRequest: Program[Request] = for {
       request <- read().map(toRequest)
@@ -80,11 +76,6 @@ object CandyProgram {
 
     def pure[A](i: A): Program[A] = Free.pure[CandyMachine, A](i)
 
-    def handleInvalidRequest(e: Exception): Program[Request] = for {
-      _ <- write(e.getMessage)
-      r <- getRequest
-    } yield r
-
     def toRequest(s: String): Either[Exception, Request] =
       if (s == "c")
         Right(InsertCoin(0L))
@@ -92,20 +83,31 @@ object CandyProgram {
         Right(Turn(0L))
       else if (s == "q")
         Right(QuitRequest())
-      else if(s == "s")
+      else if (s == "s")
         Right(GetMachineState(0))
-      else if(s == "h")
+      else if (s == "h")
         Right(HelpRequest())
       else
-      Left(new IllegalArgumentException(s"Invalid request: $s"))
+        Left(new IllegalArgumentException(s"Invalid request: $s"))
+
+    def handleInvalidRequest(e: Exception): Program[Request] = for {
+      _ <- write(e.getMessage)
+      r <- getRequest
+    } yield r
+
+    def handleRequest(request: Request): Program[Unit] = request match {
+      case QuitRequest() => pure(())
+      case HelpRequest() => showCommands
+      case _ => for {
+        m <- machineProgram(request)
+        _ <- write(m)
+      } yield ()
+    }
 
     main()
   }
 
-  private def createMachine =
-    machineProgram(CreateMachine(MachineState(locked = true, candies = 100, coins = 0)))
-
-  def machineProgram(request: Request)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[Either[Exception,MachineState]] = {
+  def machineProgram(request: Request)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[Either[Exception, MachineState]] = {
     import D._
     import I._
 
