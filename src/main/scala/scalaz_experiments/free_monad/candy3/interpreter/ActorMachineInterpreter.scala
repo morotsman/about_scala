@@ -1,18 +1,17 @@
-package scalaz_experiments.free_monad.candy3
+package scalaz_experiments.free_monad.candy3.interpreter
 
-import scalaz_experiments.free_monad.candy3.Types.ProgramResult
-import scalaz_experiments.free_monad.candy3.pure.MachineState
-import scalaz_experiments.free_monad.candy3.pure.algebra.{CurrentState, InitialState, MachineOp, UpdateState}
-import cats.~>
-
-import scala.concurrent.ExecutionContextExecutor
-
-import akka.actor.typed.{ActorRef, Behavior, Scheduler}
-import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.AskPattern._
+import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.{ActorRef, Behavior, Scheduler}
 import akka.util.Timeout
 import cats.data.EitherT
-import scalaz_experiments.free_monad.candy3.MachineActor._
+import cats.~>
+import scalaz_experiments.free_monad.candy3.Types.ProgramResult
+import scalaz_experiments.free_monad.candy3.interpreter.MachineActor._
+import scalaz_experiments.free_monad.candy3.pure.MachineState
+import scalaz_experiments.free_monad.candy3.pure.algebra.{CurrentState, InitialState, MachineOp, UpdateState}
+
+import scala.concurrent.ExecutionContextExecutor
 
 object MachineActor {
 

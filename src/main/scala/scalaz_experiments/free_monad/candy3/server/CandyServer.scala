@@ -1,29 +1,28 @@
-package scalaz_experiments.free_monad.candy3
+package scalaz_experiments.free_monad.candy3.server
 
+import akka.actor.typed.scaladsl.AskPattern._
 import akka.actor.typed.{ActorRef, ActorSystem}
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.server.Directives
+import akka.util.Timeout
 import cats._
 import cats.implicits._
+import scalaz_experiments.free_monad.candy3.Types.ProgramResult
+import scalaz_experiments.free_monad.candy3.interpreter.{ActorMachineInterpreter, NoopAsyncIOInterpreter, SystemInitializer}
 import scalaz_experiments.free_monad.candy3.pure.CandyProgram.CandyMachine
 import scalaz_experiments.free_monad.candy3.pure.Request._
 import scalaz_experiments.free_monad.candy3.pure._
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContextExecutor, Future}
-import scala.io.StdIn
-import scala.util.{Failure, Success, Try}
-import Types._
-import akka.http.scaladsl.server.Directives
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.util.Timeout
-import scalaz_experiments.free_monad.candy3.SystemInitializer.{Setup, SystemContext}
+import scalaz_experiments.free_monad.candy3.interpreter.SystemInitializer.{Setup, SystemContext}
 import spray.json._
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.io.StdIn
 import scala.language.postfixOps
-
-import akka.actor.typed.scaladsl.AskPattern._
+import scala.util.{Failure, Success}
 
 // DTO
 final case class Machines(machines: List[MachineState])
@@ -92,7 +91,7 @@ class CandyServer(val interpreter: CandyMachine ~> ProgramResult) extends Direct
   }
 
   private def handler(r: Request): Future[Either[Exception, MachineState]] =
-    CandyProgram.program(r).foldMap(interpreter).value
+    CandyProgram.machineProgram(r).foldMap(interpreter).value
 
 }
 
@@ -108,7 +107,7 @@ object CandyServer {
     def setupActorSystem(): Future[SystemContext] = system.ask((ref: ActorRef[SystemContext]) => Setup(ref))
 
     def createInterpreter(context: SystemContext) =
-      ActorMachineInterpreter.actorMachineInterpreter(context.machineActor) or SimpleAsyncIOInterpreter
+      ActorMachineInterpreter.actorMachineInterpreter(context.machineActor) or NoopAsyncIOInterpreter
 
     def bindingFuture(interpreter: CandyMachine ~> ProgramResult) = Http().newServerAt("localhost", 8090).bind(new CandyServer(interpreter).route)
 
