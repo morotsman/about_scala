@@ -1,6 +1,6 @@
 package scalaz_experiments.free_monad.candy3.pure
 
-import cats.data.EitherK
+import cats.data.{EitherK, EitherT}
 import cats.free.Free
 import scalaz_experiments.free_monad.candy.pure.CandyMachine.Program
 import scalaz_experiments.free_monad.candy3.pure.Request._
@@ -33,7 +33,7 @@ object CandyProgram {
 
   type Program[A] = Free[CandyMachine, A]
 
-  def cliProgram()(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[Unit] = {
+  def cliProgram(initialMachine: MachineState)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[Unit] = {
     import D._
     import I._
 
@@ -54,7 +54,7 @@ object CandyProgram {
     } yield ()
 
     def createMachine =
-      machineProgram(CreateMachine(MachineState(locked = true, candies = 100, coins = 0)))
+      handleRequest(CreateMachine(initialMachine))
 
     def doWhileM[A](p: Program[A])(expr: => A => Boolean): Program[Unit] = for {
       a <- p
@@ -98,9 +98,33 @@ object CandyProgram {
     def handleRequest(request: Request): Program[Unit] = request match {
       case QuitRequest() => pure(())
       case HelpRequest() => showCommands
-      case _ => for {
+      case GetMachineState(id) => for {
         m <- machineProgram(request)
-        _ <- write(m)
+        _ <- m match {
+          case Left(e) => write(s"Could not get the state for the machine: ${e.getMessage}")
+          case Right(v) => write(m)
+        }
+      } yield ()
+      case InsertCoin(id) => for {
+        m <- machineProgram(request)
+        _ <- m match {
+          case Left(e) => write(s"Could not insert coin: ${e.getMessage}")
+          case Right(v) => write("Coin disposed, turn to get your candy!")
+        }
+      } yield ()
+      case Request.Turn(id) => for {
+        m <- machineProgram(request)
+        _ <- m match {
+          case Left(e) => write(s"Could not turn: ${e.getMessage}")
+          case Right(v) => write("Here is your candy!")
+        }
+      } yield ()
+      case CreateMachine(m) => for {
+        m <- machineProgram(request)
+        _ <- m match {
+          case Left(e) => write(s"Could not create the machine: ${e.getMessage}")
+          case Right(v) => write(s"The machine contains ${v.candies} candies")
+        }
       } yield ()
     }
 

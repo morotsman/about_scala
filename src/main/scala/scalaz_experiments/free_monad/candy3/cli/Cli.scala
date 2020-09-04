@@ -9,7 +9,7 @@ import cats.implicits._
 import scalaz_experiments.free_monad.candy3.Types.ProgramResult
 import scalaz_experiments.free_monad.candy3.interpreter.{ActorMachineInterpreter, PromptAsyncIOInterpreter, SystemInitializer}
 import scalaz_experiments.free_monad.candy3.interpreter.SystemInitializer.{Setup, SystemContext}
-import scalaz_experiments.free_monad.candy3.pure.CandyProgram
+import scalaz_experiments.free_monad.candy3.pure.{CandyProgram, MachineState}
 import scalaz_experiments.free_monad.candy3.pure.CandyProgram.CandyMachine
 import scalaz_experiments.free_monad.candy3.server.CandyServer.system
 
@@ -36,7 +36,7 @@ object Cli {
   }
 
   def runProgram(interpreter: CandyMachine ~> ProgramResult): ProgramResult[Unit] = {
-    CandyProgram.cliProgram.foldMap(interpreter)
+    CandyProgram.cliProgram(MachineState(locked = true, candies = 20, coins = 0)).foldMap(interpreter)
   }
 
   def setupActorSystem(): Future[SystemContext] = system.ask((ref: ActorRef[SystemContext]) => Setup(ref))
