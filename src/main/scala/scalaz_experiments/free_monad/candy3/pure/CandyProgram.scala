@@ -34,12 +34,11 @@ object CandyProgram {
 
   type Program[A] = EitherT[FreeProgram, Throwable, A]
 
-  def cliProgram(initialMachine: MachineState)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[Unit] = {
+  def cliProgram(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[Unit] = {
 
     def main(): Program[Unit] = (for {
       _ <- write("Welcome to the candy machine")
       _ <- showCommands
-      _ <- createMachine
       _ <- doWhileM(processInput)(input => input != QuitRequest())
     } yield ())
 
@@ -51,9 +50,6 @@ object CandyProgram {
       _ <- write("h - help")
       _ <- write("q - quit")
     } yield ()
-
-    def createMachine: Program[Unit] =
-      handleRequest(CreateMachine(initialMachine))
 
     def doWhileM[A](p: Program[A])(expr: => A => Boolean): Program[Unit] = for {
       a <- p
@@ -83,6 +79,7 @@ object CandyProgram {
         Right(HelpRequest())
       else
         Left(new IllegalArgumentException(s"Invalid request: $s"))
+
       pureProgramFromEither(result)
     }
 

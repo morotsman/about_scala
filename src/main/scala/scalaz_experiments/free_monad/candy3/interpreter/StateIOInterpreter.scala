@@ -12,16 +12,16 @@ object StateIOInterpreter extends (IOA ~> CandyState) {
       old <- State.get
       _ <- State.modify(addToOutput(old.in.head))
       _ <- State.modify(addToInput(old.in.tail))
-    } yield (old.in.head.asInstanceOf[A])
+    } yield old.in.head.asInstanceOf[A]
     case Write(msg) => for {
-      _ <- State.modify(addToOutput(msg))
-    } yield ().asInstanceOf[A]
+      r <- State.modify(addToOutput(msg))
+    } yield Right(r)
   }
 
   def addToOutput[A](i: A)(s: InternalState[Any]): InternalState[Any] =
-    s.copy(out = i :: s.out)
+    s.copy(out = Right(i) :: s.out)
 
-  def addToInput[A](i: List[A])(s: InternalState[Any]): InternalState[Any] =
+  def addToInput[A](i: List[Either[Throwable,A]])(s: InternalState[Any]): InternalState[Any] =
     s.copy(in = i)
 }
 

@@ -9,7 +9,7 @@ object Types {
 
   type ProgramResult[A] = Future[A]// Future[Either[Exception, A]]
 
-  case class InternalState[A](in: List[A], out: List[A], machine: Either[Throwable, MachineState])
+  case class InternalState[A](in: List[Either[Throwable,A]], out: List[Either[Throwable,A]], machine: Either[Throwable, MachineState])
 
   type CandyState[A] = State[InternalState[Any], A]
 
