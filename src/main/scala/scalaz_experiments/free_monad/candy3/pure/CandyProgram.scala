@@ -30,20 +30,22 @@ object Request {
 object CandyProgram {
   type CandyMachine[A] = EitherK[MachineOp, IOA, A]
 
-  type Program[A] = Free[CandyMachine, A]
+  type FreeProgram[A] = Free[CandyMachine, A]
 
-  def cliProgram(initialMachine: MachineState)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): EitherT[Program, Throwable, Unit] = {
+  type Program[A] = EitherT[FreeProgram, Throwable, A]
 
-    def main() = (for {
+  def cliProgram(initialMachine: MachineState)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[Unit] = {
+
+    def main(): Program[Unit] = (for {
       _ <- write("Welcome to the candy machine")
       _ <- showCommands
       _ <- createMachine
       _ <- doWhileM(processInput)(input => input != QuitRequest())
     } yield ())
 
-    def write[A](s: A) = EitherT(I.write(s))
+    def write[A](s: A): Program[Unit] = EitherT(I.write(s))
 
-    def showCommands: EitherT[Program, Throwable, Unit] = for {
+    def showCommands: Program[Unit] = for {
       _ <- write("Available commands")
       _ <- write("s - get current state of machine")
       _ <- write("c - insert a coin")
@@ -52,27 +54,27 @@ object CandyProgram {
       _ <- write("q - quit")
     } yield ()
 
-    def createMachine: EitherT[Program, Throwable, Unit] =
+    def createMachine: Program[Unit] =
       handleRequest(CreateMachine(initialMachine))
 
-    def doWhileM[A](p:  EitherT[Program, Throwable, A])(expr: => A => Boolean):  EitherT[Program, Throwable, Unit] = for {
+    def doWhileM[A](p: Program[A])(expr: => A => Boolean): Program[Unit] = for {
       a <- p
       _ <- if (expr(a)) doWhileM(p)(expr) else noop
     } yield ()
 
-    def noop = EitherT(pure(Right(()): Either[Throwable, Unit]))
+    def noop: Program[Unit] = EitherT(pure(Right(()): Either[Throwable, Unit]))
 
-    def processInput: EitherT[Program, Throwable, Request] = for {
+    def processInput: Program[Request] = for {
       request <- getRequest
       _ <- handleRequest(request)
     } yield request
 
-    def getRequest: EitherT[Program, Throwable, Request] = (for {
+    def getRequest: Program[Request] = (for {
       input <- read[String]()
-      request <-  EitherT(pure(toRequest(input)))
+      request <- EitherT(pure(toRequest(input)))
     } yield request).recoverWith(e => handleInvalidRequest(e))
 
-    def read[A]() = EitherT(I.read[A]())
+    def read[A](): Program[A] = EitherT(I.read[A]())
 
     def pure[A](i: A) = Free.pure[CandyMachine, A](i)
 
@@ -90,12 +92,12 @@ object CandyProgram {
       else
         Left(new IllegalArgumentException(s"Invalid request: $s"))
 
-    def handleInvalidRequest(e: Throwable): EitherT[Program, Throwable, Request] = for {
+    def handleInvalidRequest(e: Throwable): Program[Request] = for {
       _ <- write(e.getMessage)
       r <- getRequest
     } yield r
 
-    def handleRequest(request: Request): EitherT[Program, Throwable, Unit] = (request match {
+    def handleRequest(request: Request): Program[Unit] = (request match {
       case QuitRequest() => noop
       case HelpRequest() => showCommands
       case CreateMachine(_) => for {
@@ -119,7 +121,7 @@ object CandyProgram {
     main()
   }
 
-  def machineProgram(request: Request)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): EitherT[Program, Throwable, MachineState] = {
+  def machineProgram(request: Request)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[MachineState] = {
     import D._
     import I._
 
@@ -156,7 +158,7 @@ object CandyProgram {
         case Request.Turn(id) => updateState(id, applyRule(Turn))
       }
     } yield response
-    
+
     EitherT(result)
   }
 }
