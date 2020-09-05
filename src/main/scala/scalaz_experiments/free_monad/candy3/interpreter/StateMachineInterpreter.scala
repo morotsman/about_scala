@@ -26,6 +26,6 @@ object StateMachineInterpreter {
     }
   }
 
-  def updateMachine[A](m: Either[Exception, MachineState], s: InternalState[Any]): InternalState[Any] =
+  def updateMachine[A](m: Either[Throwable, MachineState], s: InternalState[Any]): InternalState[Any] =
     s.copy(machine = m)
 }

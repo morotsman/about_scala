@@ -16,7 +16,7 @@ object MachineActor {
 
   sealed trait MachineRequest
 
-  case class UpdateStateRequest(id: Long, f: MachineState => Either[Exception, MachineState], replyTo: ActorRef[UpdateStateReply]) extends MachineRequest
+  case class UpdateStateRequest(id: Long, f: MachineState => Either[Throwable, MachineState], replyTo: ActorRef[UpdateStateReply]) extends MachineRequest
 
   case class CurrentStateRequest(id: Long, replyTo: ActorRef[CurrentStateReply]) extends MachineRequest
 
@@ -24,11 +24,11 @@ object MachineActor {
 
   sealed trait MachineReply
 
-  case class UpdateStateReply(result: Either[Exception, MachineState]) extends MachineReply
+  case class UpdateStateReply(result: Either[Throwable, MachineState]) extends MachineReply
 
-  case class CurrentStateReply(result: Either[Exception, MachineState]) extends MachineReply
+  case class CurrentStateReply(result: Either[Throwable, MachineState]) extends MachineReply
 
-  case class InitialStateReply(result: Either[Exception, MachineState]) extends MachineReply
+  case class InitialStateReply(result: Either[Throwable, MachineState]) extends MachineReply
 
   def apply(): Behavior[MachineRequest] = {
     behave(0L, Map[Long, MachineState]())

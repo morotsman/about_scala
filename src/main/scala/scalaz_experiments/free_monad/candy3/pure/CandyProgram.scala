@@ -2,7 +2,6 @@ package scalaz_experiments.free_monad.candy3.pure
 
 import cats.data.{EitherK, EitherT}
 import cats.free.Free
-import scalaz_experiments.free_monad.candy.pure.CandyMachine.Program
 import scalaz_experiments.free_monad.candy3.pure.Request._
 import scalaz_experiments.free_monad.candy3.pure.algebra.{IO, IOA, Machine, MachineOp}
 
@@ -66,17 +65,25 @@ object CandyProgram {
       _ <- handleRequest(request)
     } yield request
 
-    def getRequest: Program[Request] = for {
-      request <- read().map(toRequest)
-      result <- request match {
-        case Left(e) => handleInvalidRequest(e)
-        case Right(v) => pure(v)
-      }
-    } yield result
+
+    def getRequest: Program[Request] = {
+      val maybeRequest = (for {
+        input <- EitherT(read[String]())
+        maybeRequest <- EitherT(pure(toRequest(input)))
+      } yield maybeRequest).value
+
+      for {
+        request <- maybeRequest
+        result <- request match {
+          case Left(e) => handleInvalidRequest(e)
+          case Right(v) => pure(v)
+        }
+      } yield result
+    }
 
     def pure[A](i: A): Program[A] = Free.pure[CandyMachine, A](i)
 
-    def toRequest(s: String): Either[Exception, Request] =
+    def toRequest(s: String): Either[Throwable, Request] =
       if (s == "c")
         Right(InsertCoin(0L))
       else if (s == "t")
@@ -90,7 +97,7 @@ object CandyProgram {
       else
         Left(new IllegalArgumentException(s"Invalid request: $s"))
 
-    def handleInvalidRequest(e: Exception): Program[Request] = for {
+    def handleInvalidRequest(e: Throwable): Program[Request] = for {
       _ <- write(e.getMessage)
       r <- getRequest
     } yield r
@@ -101,7 +108,7 @@ object CandyProgram {
       case GetMachineState(id) => for {
         m <- machineProgram(request)
         _ <- m match {
-          case Left(e) => write(s"Could not get the state for the machine: ${e.getMessage}")
+          case Left(e) => write(s"Error when handling request: ${e.getMessage}")
           case Right(v) => write(m)
         }
       } yield ()
@@ -131,7 +138,7 @@ object CandyProgram {
     main()
   }
 
-  def machineProgram(request: Request)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[Either[Exception, MachineState]] = {
+  def machineProgram(request: Request)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[Either[Throwable, MachineState]] = {
     import D._
     import I._
 
@@ -141,7 +148,7 @@ object CandyProgram {
 
     case object Turn extends Input
 
-    def applyRule(input: Input)(machine: MachineState): Either[Exception, MachineState] = input match {
+    def applyRule(input: Input)(machine: MachineState): Either[Throwable, MachineState] = input match {
       case Coin =>
         if (machine.candies == 0) {
           Left(new IllegalStateException("No candies left"))

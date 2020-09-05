@@ -77,12 +77,12 @@ class CandyServer(val interpreter: CandyMachine ~> ProgramResult) extends Direct
   private def internalServerError(ex: Throwable) =
     complete(StatusCodes.InternalServerError, Error(ex.getMessage))
 
-  private def toResponse(value: Either[Exception, MachineState]) = value match {
+  private def toResponse(value: Either[Throwable, MachineState]) = value match {
     case Right(v) => complete(v)
     case Left(ex) => mapError(ex)
   }
 
-  private def mapError(ex: Exception) = {
+  private def mapError(ex: Throwable) = {
     ex match {
       case e: IllegalStateException => complete(StatusCodes.BadRequest, Error(e.getMessage))
       case e: NoSuchElementException => complete(StatusCodes.NotFound, Error(e.getMessage))
@@ -90,7 +90,7 @@ class CandyServer(val interpreter: CandyMachine ~> ProgramResult) extends Direct
     }
   }
 
-  private def handler(r: Request): Future[Either[Exception, MachineState]] =
+  private def handler(r: Request): Future[Either[Throwable, MachineState]] =
     CandyProgram.machineProgram(r).foldMap(interpreter)
 
 }
