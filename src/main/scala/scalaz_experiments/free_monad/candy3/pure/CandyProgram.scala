@@ -102,7 +102,6 @@ object CandyProgram {
       case HelpRequest() => showCommands
       case CreateMachine(_) => for {
         m <- machineProgram(request)
-        _ <- write(m.toString)
       } yield ()
       case GetMachineState(_) => for {
         m <- machineProgram(request)
