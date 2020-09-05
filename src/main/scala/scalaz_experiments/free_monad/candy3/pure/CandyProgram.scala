@@ -113,12 +113,13 @@ object CandyProgram {
 
     def noop: Program[Unit] = pureProgram(())
 
-    def pureProgram[A](a: A): Program[A] = EitherT(pureFreeProgram(Right(a): Either[Throwable, A]))
+    def pureProgram[A](a: A): Program[A] = pureProgramFromEither(Right(a))
 
-    def pureProgramFromEither(result: Either[IllegalArgumentException, Request]): Program[Request] =
-      EitherT(pureFreeProgram(result))
+    def pureProgramFromEither[A](v: Either[Throwable, A]): Program[A] = {
+      def pureFreeProgram[A](v: A): FreeProgram[A] = Free.pure[CandyMachine, A](v)
 
-    def pureFreeProgram[A](i: A): FreeProgram[A] = Free.pure[CandyMachine, A](i)
+      EitherT(pureFreeProgram(v))
+    }
 
     def read[A](): Program[A] = EitherT(I.read[A]())
 
