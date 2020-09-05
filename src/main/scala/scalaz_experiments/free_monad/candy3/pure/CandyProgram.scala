@@ -83,7 +83,7 @@ object CandyProgram {
         Right(HelpRequest())
       else
         Left(new IllegalArgumentException(s"Invalid request: $s"))
-      EitherT(pureFreeProgram(result))
+      pureProgramFromEither(result)
     }
 
     def handleInvalidRequest(e: Throwable): Program[Request] = for {
@@ -114,6 +114,9 @@ object CandyProgram {
     def noop: Program[Unit] = pureProgram(())
 
     def pureProgram[A](a: A): Program[A] = EitherT(pureFreeProgram(Right(a): Either[Throwable, A]))
+
+    def pureProgramFromEither(result: Either[IllegalArgumentException, Request]): Program[Request] =
+      EitherT(pureFreeProgram(result))
 
     def pureFreeProgram[A](i: A): FreeProgram[A] = Free.pure[CandyMachine, A](i)
 
