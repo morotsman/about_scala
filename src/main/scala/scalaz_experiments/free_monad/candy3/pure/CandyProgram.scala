@@ -99,19 +99,19 @@ object CandyProgram {
       case QuitRequest() => noop
       case HelpRequest() => showCommands
       case CreateMachine(_) => for {
-        m <- EitherT(machineProgram(request))
+        m <- machineProgram(request)
         _ <- write(m.toString)
       } yield ()
       case GetMachineState(_) => for {
-        m <- EitherT(machineProgram(request))
+        m <- machineProgram(request)
         _ <- write(m.toString)
       } yield ()
       case InsertCoin(_) => for {
-        m <- EitherT(machineProgram(request))
+        m <- machineProgram(request)
         _ <- write("Coin disposed, turn to get your candy!")
       } yield ()
       case Turn(_) => for {
-        m <- EitherT(machineProgram(request))
+        m <- machineProgram(request)
         _ <- write("Here is your candy!")
       } yield ()
     }).recoverWith(e => write(s"Error when handling request: ${e.getMessage}"))
@@ -119,7 +119,7 @@ object CandyProgram {
     main()
   }
 
-  def machineProgram(request: Request)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[Either[Throwable, MachineState]] = {
+  def machineProgram(request: Request)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): EitherT[Program, Throwable, MachineState] = {
     import D._
     import I._
 
@@ -148,7 +148,7 @@ object CandyProgram {
         }
     }
 
-    for {
+    val result = for {
       response <- request match {
         case CreateMachine(m) => initialState(m)
         case GetMachineState(id) => currentState(id)
@@ -156,5 +156,7 @@ object CandyProgram {
         case Request.Turn(id) => updateState(id, applyRule(Turn))
       }
     } yield response
+    
+    EitherT(result)
   }
 }
