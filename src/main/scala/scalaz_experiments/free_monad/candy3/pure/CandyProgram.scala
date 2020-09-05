@@ -32,7 +32,7 @@ object CandyProgram {
 
   type Program[A] = Free[CandyMachine, A]
 
-  def cliProgram(initialMachine: MachineState)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]) = {
+  def cliProgram(initialMachine: MachineState)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): EitherT[Program, Throwable, Unit] = {
 
     def main() = (for {
       _ <- write("Welcome to the candy machine")
