@@ -5,7 +5,7 @@ import cats.~>
 import scalaz_experiments.free_monad.candy3.Types._
 import scalaz_experiments.free_monad.candy3.pure.algebra.{IOA, Read, Write}
 
-/*
+
 object StateIOInterpreter extends (IOA ~> CandyState) {
   def apply[A](i: IOA[A]): CandyState[A] = i match {
     case Read() => for {
@@ -15,7 +15,7 @@ object StateIOInterpreter extends (IOA ~> CandyState) {
     } yield (old.in.head.asInstanceOf[A])
     case Write(msg) => for {
       _ <- State.modify(addToOutput(msg))
-    } yield ()
+    } yield ().asInstanceOf[A]
   }
 
   def addToOutput[A](i: A)(s: InternalState[Any]): InternalState[Any] =
@@ -24,4 +24,4 @@ object StateIOInterpreter extends (IOA ~> CandyState) {
   def addToInput[A](i: List[A])(s: InternalState[Any]): InternalState[Any] =
     s.copy(in = i)
 }
-*/
+
