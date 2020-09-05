@@ -32,18 +32,18 @@ object CandyProgram {
 
   type Program[A] = Free[CandyMachine, A]
 
-  def cliProgram(initialMachine: MachineState)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[Unit] = {
-    import D._
-    import I._
+  def cliProgram(initialMachine: MachineState)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]) = {
 
-    def main(): Program[Unit] = for {
+    def main() = (for {
       _ <- write("Welcome to the candy machine")
       _ <- showCommands
       _ <- createMachine
       _ <- doWhileM(processInput)(input => input != QuitRequest())
-    } yield ()
+    } yield ())
 
-    def showCommands: Program[Unit] = for {
+    def write[A](s: A) = EitherT(I.write(s))
+
+    def showCommands: EitherT[Program, Throwable, Unit] = for {
       _ <- write("Available commands")
       _ <- write("s - get current state of machine")
       _ <- write("c - insert a coin")
@@ -52,36 +52,29 @@ object CandyProgram {
       _ <- write("q - quit")
     } yield ()
 
-    def createMachine =
+    def createMachine: EitherT[Program, Throwable, Unit] =
       handleRequest(CreateMachine(initialMachine))
 
-    def doWhileM[A](p: Program[A])(expr: => A => Boolean): Program[Unit] = for {
+    def doWhileM[A](p:  EitherT[Program, Throwable, A])(expr: => A => Boolean):  EitherT[Program, Throwable, Unit] = for {
       a <- p
-      _ <- if (expr(a)) doWhileM(p)(expr) else pure(())
+      _ <- if (expr(a)) doWhileM(p)(expr) else noop
     } yield ()
 
-    def processInput: Program[Request] = for {
+    def noop = EitherT(pure(Right(()): Either[Throwable, Unit]))
+
+    def processInput: EitherT[Program, Throwable, Request] = for {
       request <- getRequest
       _ <- handleRequest(request)
     } yield request
 
+    def getRequest: EitherT[Program, Throwable, Request] = (for {
+      input <- read[String]()
+      request <-  EitherT(pure(toRequest(input)))
+    } yield request).recoverWith(e => handleInvalidRequest(e))
 
-    def getRequest: Program[Request] = {
-      val maybeRequest = (for {
-        input <- EitherT(read[String]())
-        maybeRequest <- EitherT(pure(toRequest(input)))
-      } yield maybeRequest).value
+    def read[A]() = EitherT(I.read[A]())
 
-      for {
-        request <- maybeRequest
-        result <- request match {
-          case Left(e) => handleInvalidRequest(e)
-          case Right(v) => pure(v)
-        }
-      } yield result
-    }
-
-    def pure[A](i: A): Program[A] = Free.pure[CandyMachine, A](i)
+    def pure[A](i: A) = Free.pure[CandyMachine, A](i)
 
     def toRequest(s: String): Either[Throwable, Request] =
       if (s == "c")
@@ -97,43 +90,31 @@ object CandyProgram {
       else
         Left(new IllegalArgumentException(s"Invalid request: $s"))
 
-    def handleInvalidRequest(e: Throwable): Program[Request] = for {
+    def handleInvalidRequest(e: Throwable): EitherT[Program, Throwable, Request] = for {
       _ <- write(e.getMessage)
       r <- getRequest
     } yield r
 
-    def handleRequest(request: Request): Program[Unit] = request match {
-      case QuitRequest() => pure(())
+    def handleRequest(request: Request): EitherT[Program, Throwable, Unit] = (request match {
+      case QuitRequest() => noop
       case HelpRequest() => showCommands
-      case GetMachineState(id) => for {
-        m <- machineProgram(request)
-        _ <- m match {
-          case Left(e) => write(s"Error when handling request: ${e.getMessage}")
-          case Right(v) => write(m)
-        }
+      case CreateMachine(_) => for {
+        m <- EitherT(machineProgram(request))
+        _ <- write(m.toString)
       } yield ()
-      case InsertCoin(id) => for {
-        m <- machineProgram(request)
-        _ <- m match {
-          case Left(e) => write(s"Could not insert coin: ${e.getMessage}")
-          case Right(v) => write("Coin disposed, turn to get your candy!")
-        }
+      case GetMachineState(_) => for {
+        m <- EitherT(machineProgram(request))
+        _ <- write(m.toString)
       } yield ()
-      case Request.Turn(id) => for {
-        m <- machineProgram(request)
-        _ <- m match {
-          case Left(e) => write(s"Could not turn: ${e.getMessage}")
-          case Right(v) => write("Here is your candy!")
-        }
+      case InsertCoin(_) => for {
+        m <- EitherT(machineProgram(request))
+        _ <- write("Coin disposed, turn to get your candy!")
       } yield ()
-      case CreateMachine(m) => for {
-        m <- machineProgram(request)
-        _ <- m match {
-          case Left(e) => write(s"Could not create the machine: ${e.getMessage}")
-          case Right(v) => write(s"The machine contains ${v.candies} candies")
-        }
+      case Turn(_) => for {
+        m <- EitherT(machineProgram(request))
+        _ <- write("Here is your candy!")
       } yield ()
-    }
+    }).recoverWith(e => write(s"Error when handling request: ${e.getMessage}"))
 
     main()
   }

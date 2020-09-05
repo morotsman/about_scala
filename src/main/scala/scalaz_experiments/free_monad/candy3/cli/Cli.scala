@@ -35,8 +35,8 @@ object Cli {
 
   }
 
-  def runProgram(interpreter: CandyMachine ~> ProgramResult): ProgramResult[Unit] = {
-    CandyProgram.cliProgram(MachineState(locked = true, candies = 20, coins = 0)).foldMap(interpreter)
+  def runProgram(interpreter: CandyMachine ~> ProgramResult) = {
+    CandyProgram.cliProgram(MachineState(locked = true, candies = 20, coins = 0)).value.foldMap(interpreter)
   }
 
   def setupActorSystem(): Future[SystemContext] = system.ask((ref: ActorRef[SystemContext]) => Setup(ref))
