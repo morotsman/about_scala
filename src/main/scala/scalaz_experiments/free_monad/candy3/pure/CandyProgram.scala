@@ -71,15 +71,15 @@ object CandyProgram {
 
     def getRequest: Program[Request] = (for {
       input <- read[String]()
-      request <- EitherT(pure(toRequest(input)))
+      request <- toRequest(input)
     } yield request).recoverWith(e => handleInvalidRequest(e))
 
     def read[A](): Program[A] = EitherT(I.read[A]())
 
-    def pure[A](i: A) = Free.pure[CandyMachine, A](i)
 
-    def toRequest(s: String): Either[Throwable, Request] =
-      if (s == "c")
+
+    def toRequest(s: String): Program[Request] = {
+      val result = if (s == "c")
         Right(InsertCoin(0L))
       else if (s == "t")
         Right(Turn(0L))
@@ -91,6 +91,10 @@ object CandyProgram {
         Right(HelpRequest())
       else
         Left(new IllegalArgumentException(s"Invalid request: $s"))
+      EitherT(pure(result))
+    }
+
+    def pure[A](i: A) = Free.pure[CandyMachine, A](i)
 
     def handleInvalidRequest(e: Throwable): Program[Request] = for {
       _ <- write(e.getMessage)
