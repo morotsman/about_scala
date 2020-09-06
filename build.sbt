@@ -24,3 +24,8 @@ libraryDependencies += "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpV
 
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.0"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.0" % "test"
+
+libraryDependencies ++= Seq(
+  "com.typesafe.akka" %% "akka-stream-testkit" % AkkaVersion,
+  "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion
+)
