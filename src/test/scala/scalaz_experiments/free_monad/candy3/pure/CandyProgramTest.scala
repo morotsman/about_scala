@@ -125,8 +125,24 @@ class CandyProgramTest extends AnyFlatSpec {
     val expectedOutput = welcome ++ help ++ coinDisposed ++ coinRejected ++ quit
     assert(actualOutput == expectedOutput)
 
-    val expectedState = Left(new IllegalStateException("A coin has already been disposed"))
-    assert(actualState.toString == expectedState.toString)
+    val expectedState = Right(MachineState(Some(0), unlocked, 20, 1))
+    assert(actualState == expectedState)
+  }
+
+  "A CandyProgram" should "accept a turn after a faulty input" in {
+    val state = InternalState[String](List(Right("c"), Right("c"), Right("t"), Right("q")), List[Either[Exception, String]](), Right(MachineState(Some(0), locked, 20, 0)): Either[Throwable, MachineState])
+
+    val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val actualOutput = result._1.out.reverse
+    val actualState = result._1.machine
+
+    actualOutput.foreach(println)
+
+    val expectedOutput = welcome ++ help ++ coinDisposed ++ coinRejected ++ turn ++ quit
+    assert(actualOutput == expectedOutput)
+
+    val expectedState = Right(MachineState(Some(0), locked, 19, 1))
+    assert(actualState == expectedState)
   }
 
   "A CandyProgram" should "reject a turn if no coin has been disposed" in {
@@ -139,7 +155,7 @@ class CandyProgramTest extends AnyFlatSpec {
     val expectedOutput = welcome ++ help ++ turnRejected ++ quit
     assert(actualOutput == expectedOutput)
 
-    val expectedState = Left(new IllegalStateException("No coin has been disposed"))
+    val expectedState = Right(MachineState(Some(0), locked, 20, 0))
     assert(actualState.toString == expectedState.toString)
   }
 
@@ -195,7 +211,7 @@ class CandyProgramTest extends AnyFlatSpec {
     val expectedOutput = welcome ++ help ++ noCandiesLeft ++ quit
     assert(actualOutput == expectedOutput)
 
-    val expectedState = Left(new IllegalStateException("No candies left"))
+    val expectedState = Right(MachineState(Some(0), locked, 0, 20))
     assert(actualState.toString == expectedState.toString)
   }
 

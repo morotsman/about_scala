@@ -15,9 +15,13 @@ object StateMachineInterpreter {
           machine <- s.machine
           newMachine <- f(machine)
         } yield newMachine
-        (updateMachine(updatedMachine, s), updatedMachine)
+        if (updatedMachine.isRight) {
+          (updateMachine(updatedMachine, s), updatedMachine)
+        } else {
+          (s, updatedMachine)
+        }
       }
-      case CurrentState(id) =>  for {
+      case CurrentState(id) => for {
         s <- State.get
       } yield s.machine
       case InitialState(machine) => State { s =>
