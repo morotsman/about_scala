@@ -73,4 +73,60 @@ class CandyServerTest extends AnyFlatSpec with Matchers with ScalatestRouteTest 
     }
     mySystem.terminate()
   }
+
+  "A User" should "be able to check the current state of the machine" in {
+    val machine = MachineState(None, locked, 20, 0)
+    val (server, mySystem) = unitUnderTest
+
+    Post("/candy", machine) ~> server.route ~> check {
+      status shouldEqual StatusCodes.OK
+      responseAs[MachineState] shouldEqual MachineState(Some(0L), locked, 20, 0)
+    }
+
+    Get("/candy/0", machine) ~> server.route ~> check {
+      status shouldEqual StatusCodes.OK
+      responseAs[MachineState] shouldEqual MachineState(Some(0L), locked, 20, 0)
+    }
+
+    mySystem.terminate()
+  }
+
+  "A User" should "be able to dispose a coin" in {
+    val machine = MachineState(None, locked, 20, 0)
+    val (server, mySystem) = unitUnderTest
+
+    Post("/candy", machine) ~> server.route ~> check {
+      status shouldEqual StatusCodes.OK
+      responseAs[MachineState] shouldEqual MachineState(Some(0L), locked, 20, 0)
+    }
+
+    Put("/candy/0/coin", machine) ~> server.route ~> check {
+      status shouldEqual StatusCodes.OK
+      responseAs[MachineState] shouldEqual MachineState(Some(0L), unlocked, 20, 1)
+    }
+
+    mySystem.terminate()
+  }
+
+  "A User" should "be able to turn" in {
+    val machine = MachineState(None, locked, 20, 0)
+    val (server, mySystem) = unitUnderTest
+
+    Post("/candy", machine) ~> server.route ~> check {
+      status shouldEqual StatusCodes.OK
+      responseAs[MachineState] shouldEqual MachineState(Some(0L), locked, 20, 0)
+    }
+
+    Put("/candy/0/coin", machine) ~> server.route ~> check {
+      status shouldEqual StatusCodes.OK
+      responseAs[MachineState] shouldEqual MachineState(Some(0L), unlocked, 20, 1)
+    }
+
+    Put("/candy/0/turn", machine) ~> server.route ~> check {
+      status shouldEqual StatusCodes.OK
+      responseAs[MachineState] shouldEqual MachineState(Some(0L), locked, 19, 1)
+    }
+
+    mySystem.terminate()
+  }
 }
