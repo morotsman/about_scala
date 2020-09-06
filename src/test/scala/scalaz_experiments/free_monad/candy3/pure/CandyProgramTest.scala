@@ -73,8 +73,10 @@ class CandyProgramTest extends AnyFlatSpec {
   val locked = true
   val unlocked = false
 
+  val initialMachine = MachineState(Some(0), locked, 20, 0)
+
   "A CandyProgram" should "be able to quit" in {
-    val state = InternalState[String](List(Right("q")), List[Either[Exception, String]](), Right(MachineState(Some(0), locked, 20, 0)): Either[Throwable, MachineState])
+    val state = InternalState[String](List(Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
     val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
@@ -83,12 +85,12 @@ class CandyProgramTest extends AnyFlatSpec {
     val expectedOutput = welcome ++ help ++ quit
     assert(actualOutput == expectedOutput)
 
-    val expectedState = Right(MachineState(Some(0), locked, 20, 0))
+    val expectedState = Right(initialMachine)
     assert(actualState == expectedState)
   }
 
   "A CandyProgram" should "be able to unlock" in {
-    val state = InternalState[String](List(Right("c"), Right("q")), List[Either[Exception, String]](), Right(MachineState(Some(0), locked, 20, 0)): Either[Throwable, MachineState])
+    val state = InternalState[String](List(Right("c"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
     val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
@@ -97,12 +99,15 @@ class CandyProgramTest extends AnyFlatSpec {
     val expectedOutput = welcome ++ help ++ coinDisposed ++ quit
     assert(actualOutput == expectedOutput)
 
-    val expectedState = Right(MachineState(Some(0), unlocked, 20, 1))
+    val expectedState = Right(initialMachine.copy(
+      coins = initialMachine.coins + 1,
+      locked = unlocked
+    ))
     assert(actualState == expectedState)
   }
 
   "A CandyProgram" should "be able to turn" in {
-    val state = InternalState[String](List(Right("c"), Right("t"), Right("q")), List[Either[Exception, String]](), Right(MachineState(Some(0), locked, 20, 0)): Either[Throwable, MachineState])
+    val state = InternalState[String](List(Right("c"), Right("t"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
     val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
@@ -111,12 +116,16 @@ class CandyProgramTest extends AnyFlatSpec {
     val expectedOutput = welcome ++ help ++ coinDisposed ++ turn ++ quit
     assert(actualOutput == expectedOutput)
 
-    val expectedState = Right(MachineState(Some(0), locked, 19, 1))
+    val expectedState = Right(initialMachine.copy(
+      candies = initialMachine.candies - 1,
+      coins = initialMachine.coins + 1,
+      locked = locked
+    ))
     assert(actualState == expectedState)
   }
 
   "A CandyProgram" should "reject a coin if a coin already has been disposed" in {
-    val state = InternalState[String](List(Right("c"), Right("c"), Right("q")), List[Either[Exception, String]](), Right(MachineState(Some(0), locked, 20, 0)): Either[Throwable, MachineState])
+    val state = InternalState[String](List(Right("c"), Right("c"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
     val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
@@ -125,28 +134,33 @@ class CandyProgramTest extends AnyFlatSpec {
     val expectedOutput = welcome ++ help ++ coinDisposed ++ coinRejected ++ quit
     assert(actualOutput == expectedOutput)
 
-    val expectedState = Right(MachineState(Some(0), unlocked, 20, 1))
+    val expectedState = Right(initialMachine.copy(
+      coins = initialMachine.coins + 1,
+      locked = unlocked
+    ))
     assert(actualState == expectedState)
   }
 
   "A CandyProgram" should "accept a turn after a faulty input" in {
-    val state = InternalState[String](List(Right("c"), Right("c"), Right("t"), Right("q")), List[Either[Exception, String]](), Right(MachineState(Some(0), locked, 20, 0)): Either[Throwable, MachineState])
+    val state = InternalState[String](List(Right("c"), Right("c"), Right("t"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
     val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
-    actualOutput.foreach(println)
-
     val expectedOutput = welcome ++ help ++ coinDisposed ++ coinRejected ++ turn ++ quit
     assert(actualOutput == expectedOutput)
 
-    val expectedState = Right(MachineState(Some(0), locked, 19, 1))
+    val expectedState = Right(initialMachine.copy(
+      candies = initialMachine.candies - 1,
+      coins = initialMachine.coins + 1,
+      locked = locked
+    ))
     assert(actualState == expectedState)
   }
 
   "A CandyProgram" should "reject a turn if no coin has been disposed" in {
-    val state = InternalState[String](List(Right("t"), Right("q")), List[Either[Exception, String]](), Right(MachineState(Some(0), locked, 20, 0)): Either[Throwable, MachineState])
+    val state = InternalState[String](List(Right("t"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
     val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
@@ -155,12 +169,11 @@ class CandyProgramTest extends AnyFlatSpec {
     val expectedOutput = welcome ++ help ++ turnRejected ++ quit
     assert(actualOutput == expectedOutput)
 
-    val expectedState = Right(MachineState(Some(0), locked, 20, 0))
-    assert(actualState.toString == expectedState.toString)
+    assert(actualState == Right(initialMachine))
   }
 
   "A CandyProgram" should "be able to help" in {
-    val state = InternalState[String](List(Right("h"), Right("q")), List[Either[Exception, String]](), Right(MachineState(Some(0), locked, 20, 0)): Either[Throwable, MachineState])
+    val state = InternalState[String](List(Right("h"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
     val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
@@ -169,12 +182,11 @@ class CandyProgramTest extends AnyFlatSpec {
     val expectedOutput = welcome ++ help ++ showHelp ++ quit
     assert(actualOutput == expectedOutput)
 
-    val expectedState = Right(MachineState(Some(0), locked, 20, 0))
-    assert(actualState.toString == expectedState.toString)
+    assert(actualState == Right(initialMachine))
   }
 
   "A CandyProgram" should "be able to show the current state" in {
-    val state = InternalState[String](List(Right("s"), Right("q")), List[Either[Exception, String]](), Right(MachineState(Some(0), locked, 20, 0)): Either[Throwable, MachineState])
+    val state = InternalState[String](List(Right("s"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
     val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
@@ -183,12 +195,11 @@ class CandyProgramTest extends AnyFlatSpec {
     val expectedOutput = welcome ++ help ++ currentState ++ quit
     assert(actualOutput == expectedOutput)
 
-    val expectedState = Right(MachineState(Some(0), locked, 20, 0))
-    assert(actualState.toString == expectedState.toString)
+    assert(actualState == Right(initialMachine))
   }
 
   "A CandyProgram" should "reject an invalid command" in {
-    val state = InternalState[String](List(Right("j"), Right("q")), List[Either[Exception, String]](), Right(MachineState(Some(0), locked, 20, 0)): Either[Throwable, MachineState])
+    val state = InternalState[String](List(Right("j"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
     val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
@@ -197,12 +208,12 @@ class CandyProgramTest extends AnyFlatSpec {
     val expectedOutput = welcome ++ help ++ invalidCommand ++ quit
     assert(actualOutput == expectedOutput)
 
-    val expectedState = Right(MachineState(Some(0), locked, 20, 0))
-    assert(actualState.toString == expectedState.toString)
+    assert(actualState == Right(initialMachine))
   }
 
   "A CandyProgram" should "reject a coin if all candies has been disposed" in {
-    val state = InternalState[String](List(Right("c"), Right("q")), List[Either[Exception, String]](), Right(MachineState(Some(0), locked, 0, 20)): Either[Throwable, MachineState])
+    val initialMachine = MachineState(Some(0), locked, 0, 20)
+    val state = InternalState[String](List(Right("c"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
     val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
@@ -212,7 +223,7 @@ class CandyProgramTest extends AnyFlatSpec {
     assert(actualOutput == expectedOutput)
 
     val expectedState = Right(MachineState(Some(0), locked, 0, 20))
-    assert(actualState.toString == expectedState.toString)
+    assert(actualState == Right(initialMachine))
   }
 
 }
