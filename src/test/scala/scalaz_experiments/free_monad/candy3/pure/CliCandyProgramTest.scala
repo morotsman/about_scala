@@ -75,7 +75,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
 
   val initialMachine = MachineState(Some(0), locked, 20, 0)
 
-  "A CandyProgram" should "be able to quit" in {
+  "A User" should "be able to quit" in {
     val state = InternalState[String](List(Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
     val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
@@ -89,7 +89,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
     assert(actualState == expectedState)
   }
 
-  "A CandyProgram" should "be able to unlock" in {
+  "A User" should "be able to unlock" in {
     val state = InternalState[String](List(Right("c"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
     val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
@@ -106,7 +106,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
     assert(actualState == expectedState)
   }
 
-  "A CandyProgram" should "be able to turn" in {
+  "A User" should "be able to turn if a candy has been disposed" in {
     val state = InternalState[String](List(Right("c"), Right("t"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
     val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
@@ -124,7 +124,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
     assert(actualState == expectedState)
   }
 
-  "A CandyProgram" should "reject a coin if a coin already has been disposed" in {
+  "A User" should "not be able to dispose a coin if the machine is unlocked" in {
     val state = InternalState[String](List(Right("c"), Right("c"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
     val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value

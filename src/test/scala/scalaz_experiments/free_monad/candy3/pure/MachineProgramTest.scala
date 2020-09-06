@@ -53,4 +53,28 @@ class MachineProgramTest extends AnyFlatSpec {
     assert(actualState == Right(initialMachine))
   }
 
+  "A machineProgram" should "accept a turn if a coin has been disposed" in {
+    val state = InternalState[String](List(), List(), Right(MachineState(Some(0), unlocked, 20, 1)): Either[Throwable, MachineState])
+
+    val result = CandyProgram.machineProgram(Turn(0L)).value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val actualOutput = result._2
+    val actualState = result._1.machine
+
+    val expectedState = Right(MachineState(Some(0), true, 19, 1))
+    assert(actualOutput == expectedState)
+    assert(actualState == expectedState)
+  }
+
+  "A machineProgram" should "be able to create a new machine" in {
+    val state = InternalState[String](List(), List(), Right(MachineState(Some(0), unlocked, 20, 1)): Either[Throwable, MachineState])
+
+    val result = CandyProgram.machineProgram(CreateMachine(MachineState(Some(1), locked, 40, 1))).value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val actualOutput = result._2
+    val actualState = result._1.machine
+
+    val expectedState = Right(MachineState(Some(1), locked, 40, 1))
+    assert(actualOutput == expectedState)
+    assert(actualState == expectedState)
+  }
+
 }
