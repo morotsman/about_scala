@@ -222,7 +222,6 @@ class CandyProgramTest extends AnyFlatSpec {
     val expectedOutput = welcome ++ help ++ noCandiesLeft ++ quit
     assert(actualOutput == expectedOutput)
 
-    val expectedState = Right(MachineState(Some(0), locked, 0, 20))
     assert(actualState == Right(initialMachine))
   }
 
