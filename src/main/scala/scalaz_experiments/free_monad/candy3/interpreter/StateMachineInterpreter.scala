@@ -25,7 +25,8 @@ object StateMachineInterpreter {
         s <- State.get
       } yield s.machine
       case InitialState(machine) => State { s =>
-        (s, s.machine)
+        val initialMachine = Right(machine): Either[Throwable, MachineState]
+        (updateMachine(initialMachine, s), initialMachine)
       }
     }
   }

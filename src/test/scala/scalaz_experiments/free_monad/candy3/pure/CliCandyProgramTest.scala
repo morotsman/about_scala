@@ -4,7 +4,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import scalaz_experiments.free_monad.candy3.Types.InternalState
 import scalaz_experiments.free_monad.candy3.interpreter.{StateIOInterpreter, StateMachineInterpreter}
 
-class CandyProgramTest extends AnyFlatSpec {
+class CliCandyProgramTest extends AnyFlatSpec {
 
   val interpreter = StateMachineInterpreter.stateMachineInterpreter() or StateIOInterpreter
 
