@@ -26,10 +26,11 @@ object Cli {
   private implicit val ec: ExecutionContextExecutor = system.executionContext
 
   def main(args: Array[String]): Unit = {
+    val initialMachine = MachineState(locked = true, candies = 20, coins = 0)
 
     val asyncProgram = for {
       i <- setupActorSystem().map(createInterpreter)
-      _ <- runProgram(i, MachineState(locked = true, candies = 20, coins = 0))
+      _ <- runProgram(i, initialMachine)
     } yield ()
 
     asyncProgram.onComplete(_ => system.terminate())
