@@ -60,6 +60,16 @@ class CandyProgramTest extends AnyFlatSpec {
     Right("MachineState(Some(0),true,20,0)")
   )
 
+  val invalidCommand = List(
+    Right("j"),
+    Right("Invalid request: j")
+  )
+
+  val noCandiesLeft = List(
+    Right("c"),
+    Right("Error when handling request: No candies left")
+  )
+
   val locked = true
   val unlocked = false
 
@@ -154,11 +164,38 @@ class CandyProgramTest extends AnyFlatSpec {
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
-    actualOutput.foreach(println)
     val expectedOutput = welcome ++ help ++ currentState ++ quit
     assert(actualOutput == expectedOutput)
 
     val expectedState = Right(MachineState(Some(0), locked, 20, 0))
+    assert(actualState.toString == expectedState.toString)
+  }
+
+  "A CandyProgram" should "reject an invalid command" in {
+    val state = InternalState[String](List(Right("j"), Right("q")), List[Either[Exception, String]](), Right(MachineState(Some(0), locked, 20, 0)): Either[Throwable, MachineState])
+
+    val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val actualOutput = result._1.out.reverse
+    val actualState = result._1.machine
+
+    val expectedOutput = welcome ++ help ++ invalidCommand ++ quit
+    assert(actualOutput == expectedOutput)
+
+    val expectedState = Right(MachineState(Some(0), locked, 20, 0))
+    assert(actualState.toString == expectedState.toString)
+  }
+
+  "A CandyProgram" should "reject a coin if all candies has been disposed" in {
+    val state = InternalState[String](List(Right("c"), Right("q")), List[Either[Exception, String]](), Right(MachineState(Some(0), locked, 0, 20)): Either[Throwable, MachineState])
+
+    val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val actualOutput = result._1.out.reverse
+    val actualState = result._1.machine
+
+    val expectedOutput = welcome ++ help ++ noCandiesLeft ++ quit
+    assert(actualOutput == expectedOutput)
+
+    val expectedState = Left(new IllegalStateException("No candies left"))
     assert(actualState.toString == expectedState.toString)
   }
 
