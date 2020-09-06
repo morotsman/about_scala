@@ -40,7 +40,7 @@ class CandyServerTest extends AnyFlatSpec with Matchers with ScalatestRouteTest 
     def createInterpreter(context: SystemContext) =
       ActorMachineInterpreter.actorMachineInterpreter(context.machineActor) or NoopAsyncIOInterpreter
 
-    val futureInterpreter: Future[CandyMachine ~> ProgramResult] = setupActorSystem().map(createInterpreter)
+    val futureInterpreter = setupActorSystem().map(createInterpreter)
 
     val interpreter = Await.result(futureInterpreter, 3.seconds)
 
