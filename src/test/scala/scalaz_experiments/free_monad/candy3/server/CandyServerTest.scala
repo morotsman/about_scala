@@ -122,7 +122,6 @@ class CandyServerTest extends AnyFlatSpec with Matchers with ScalatestRouteTest 
   }
 
   "A User" should "get an error message if trying to dispose a coin in a non existing machine" in {
-    val machine = MachineState(None, locked, 20, 0)
     val (server, mySystem) = unitUnderTest
 
     Put("/candy/0/coin") ~> server.route ~> check {
@@ -134,7 +133,6 @@ class CandyServerTest extends AnyFlatSpec with Matchers with ScalatestRouteTest 
   }
 
   "A User" should "get an error message if trying to turn a non existing machine" in {
-    val machine = MachineState(None, locked, 20, 0)
     val (server, mySystem) = unitUnderTest
 
     Put("/candy/0/turn") ~> server.route ~> check {
