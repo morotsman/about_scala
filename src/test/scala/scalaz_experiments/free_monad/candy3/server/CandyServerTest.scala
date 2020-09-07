@@ -91,6 +91,19 @@ class CandyServerTest extends AnyFlatSpec with Matchers with ScalatestRouteTest 
     mySystem.terminate()
   }
 
+  "A User" should "get an error message if trying to get the status of a non existing machine" in {
+    val machine = MachineState(None, locked, 20, 0)
+    val (server, mySystem) = unitUnderTest
+
+    Get("/candy/0", machine) ~> server.route ~> check {
+      status shouldEqual StatusCodes.NotFound
+      responseAs[Error] shouldEqual Error("Could not find a machine with id: 0")
+    }
+
+    mySystem.terminate()
+  }
+
+
   "A User" should "be able to dispose a coin" in {
     val machine = MachineState(None, locked, 20, 0)
     val (server, mySystem) = unitUnderTest
@@ -103,6 +116,30 @@ class CandyServerTest extends AnyFlatSpec with Matchers with ScalatestRouteTest 
     Put("/candy/0/coin", machine) ~> server.route ~> check {
       status shouldEqual StatusCodes.OK
       responseAs[MachineState] shouldEqual MachineState(Some(0L), unlocked, 20, 1)
+    }
+
+    mySystem.terminate()
+  }
+
+  "A User" should "get an error message if trying to dispose a coin in a non existing machine" in {
+    val machine = MachineState(None, locked, 20, 0)
+    val (server, mySystem) = unitUnderTest
+
+    Put("/candy/0/coin") ~> server.route ~> check {
+      status shouldEqual StatusCodes.NotFound
+      responseAs[Error] shouldEqual Error("Could not find a machine with id: 0")
+    }
+
+    mySystem.terminate()
+  }
+
+  "A User" should "get an error message if trying to turn a non existing machine" in {
+    val machine = MachineState(None, locked, 20, 0)
+    val (server, mySystem) = unitUnderTest
+
+    Put("/candy/0/turn") ~> server.route ~> check {
+      status shouldEqual StatusCodes.NotFound
+      responseAs[Error] shouldEqual Error("Could not find a machine with id: 0")
     }
 
     mySystem.terminate()
