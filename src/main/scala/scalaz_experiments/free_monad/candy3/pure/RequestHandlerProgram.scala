@@ -2,7 +2,7 @@ package scalaz_experiments.free_monad.candy3.pure
 
 import cats.data.EitherT
 import scalaz_experiments.free_monad.candy3.pure.Request.{CreateMachine, GetMachineState, InsertCoin, Request}
-import scalaz_experiments.free_monad.candy3.pure.algebra.{Machine, MachineOp}
+import scalaz_experiments.free_monad.candy3.pure.algebra.Machine
 
 trait RequestHandlerProgram extends Program {
 
@@ -47,7 +47,5 @@ trait RequestHandlerProgram extends Program {
   }
 }
 
-object RequestHandler extends RequestHandlerProgram {
-  type CandyMachine[A] = MachineOp[A]
-}
+
 
