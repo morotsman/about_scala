@@ -8,8 +8,8 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.util.Timeout
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import scalaz_experiments.free_monad.candy3.interpreter.actor.SystemInitializer.{Setup, SystemContext}
-import scalaz_experiments.free_monad.candy3.interpreter.actor.{ActorMachineInterpreter, SystemInitializer}
+import scalaz_experiments.free_monad.candy3.interpreter.actor.ActorSystemInitializer.{Setup, SystemContext}
+import scalaz_experiments.free_monad.candy3.interpreter.actor.{ActorMachineInterpreter, ActorSystemInitializer}
 import scalaz_experiments.free_monad.candy3.pure.MachineState
 import spray.json.DefaultJsonProtocol
 
@@ -28,7 +28,7 @@ class CandyServerTest extends AnyFlatSpec with Matchers with ScalatestRouteTest 
 
   def unitUnderTest = {
     implicit val mySystem: ActorSystem[Setup] =
-      ActorSystem(SystemInitializer.setup(), "candy")
+      ActorSystem(ActorSystemInitializer.setup, "candy")
     implicit val timeout: Timeout = 3.seconds
 
     def setupActorSystem(): Future[SystemContext] = mySystem.ask((ref: ActorRef[SystemContext]) => Setup(ref))

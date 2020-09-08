@@ -8,8 +8,8 @@ import cats.data.EitherT
 import cats.implicits._
 import scalaz_experiments.free_monad.candy3.Types.ProgramResult
 import scalaz_experiments.free_monad.candy3.interpreter.PromptAsyncIOInterpreter
-import scalaz_experiments.free_monad.candy3.interpreter.actor.{ActorMachineInterpreter, SystemInitializer}
-import scalaz_experiments.free_monad.candy3.interpreter.actor.SystemInitializer.{Setup, SystemContext}
+import scalaz_experiments.free_monad.candy3.interpreter.actor.{ActorMachineInterpreter, ActorSystemInitializer}
+import scalaz_experiments.free_monad.candy3.interpreter.actor.ActorSystemInitializer.{Setup, SystemContext}
 import scalaz_experiments.free_monad.candy3.pure.{CliProgram, MachineState}
 import scalaz_experiments.free_monad.candy3.pure.CliProgram.{CandyMachine, Program}
 import scalaz_experiments.free_monad.candy3.pure.Request.CreateMachine
@@ -21,7 +21,7 @@ import scala.concurrent.duration._
 object Cli {
 
   private implicit val system: ActorSystem[Setup] =
-    ActorSystem(SystemInitializer.setup, "candy")
+    ActorSystem(ActorSystemInitializer.setup, "candy")
 
   private implicit val timeout: Timeout = 3.seconds
   private implicit val ec: ExecutionContextExecutor = system.executionContext

@@ -10,10 +10,10 @@ import akka.util.Timeout
 import cats._
 import cats.implicits._
 import scalaz_experiments.free_monad.candy3.Types.ProgramResult
-import scalaz_experiments.free_monad.candy3.interpreter.actor.{ActorMachineInterpreter, SystemInitializer}
+import scalaz_experiments.free_monad.candy3.interpreter.actor.{ActorMachineInterpreter, ActorSystemInitializer}
 import scalaz_experiments.free_monad.candy3.pure.Request._
 import scalaz_experiments.free_monad.candy3.pure._
-import scalaz_experiments.free_monad.candy3.interpreter.actor.SystemInitializer.{Setup, SystemContext}
+import scalaz_experiments.free_monad.candy3.interpreter.actor.ActorSystemInitializer.{Setup, SystemContext}
 import scalaz_experiments.free_monad.candy3.pure.algebra.MachineOp
 import spray.json._
 
@@ -98,7 +98,7 @@ class CandyServer(val interpreter: MachineOp ~> ProgramResult) extends Directive
 object CandyServer {
 
   implicit val system: ActorSystem[Setup] =
-    ActorSystem(SystemInitializer.setup, "candy")
+    ActorSystem(ActorSystemInitializer.setup, "candy")
 
   implicit val timeout: Timeout = 3.seconds
   implicit val ec: ExecutionContextExecutor = system.executionContext
