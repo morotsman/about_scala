@@ -10,10 +10,10 @@ import akka.util.Timeout
 import cats._
 import cats.implicits._
 import scalaz_experiments.free_monad.candy3.Types.ProgramResult
-import scalaz_experiments.free_monad.candy3.interpreter.{ActorMachineInterpreter, SystemInitializer}
+import scalaz_experiments.free_monad.candy3.interpreter.actor.{ActorMachineInterpreter, SystemInitializer}
 import scalaz_experiments.free_monad.candy3.pure.Request._
 import scalaz_experiments.free_monad.candy3.pure._
-import scalaz_experiments.free_monad.candy3.interpreter.SystemInitializer.{Setup, SystemContext}
+import scalaz_experiments.free_monad.candy3.interpreter.actor.SystemInitializer.{Setup, SystemContext}
 import scalaz_experiments.free_monad.candy3.pure.algebra.MachineOp
 import spray.json._
 

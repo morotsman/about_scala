@@ -8,8 +8,8 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.util.Timeout
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import scalaz_experiments.free_monad.candy3.interpreter.SystemInitializer.{Setup, SystemContext}
-import scalaz_experiments.free_monad.candy3.interpreter.{ActorMachineInterpreter, SystemInitializer}
+import scalaz_experiments.free_monad.candy3.interpreter.actor.SystemInitializer.{Setup, SystemContext}
+import scalaz_experiments.free_monad.candy3.interpreter.actor.{ActorMachineInterpreter, SystemInitializer}
 import scalaz_experiments.free_monad.candy3.pure.MachineState
 import spray.json.DefaultJsonProtocol
 

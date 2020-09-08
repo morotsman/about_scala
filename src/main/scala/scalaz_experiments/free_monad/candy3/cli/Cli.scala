@@ -7,8 +7,9 @@ import cats._
 import cats.data.EitherT
 import cats.implicits._
 import scalaz_experiments.free_monad.candy3.Types.ProgramResult
-import scalaz_experiments.free_monad.candy3.interpreter.{ActorMachineInterpreter, PromptAsyncIOInterpreter, SystemInitializer}
-import scalaz_experiments.free_monad.candy3.interpreter.SystemInitializer.{Setup, SystemContext}
+import scalaz_experiments.free_monad.candy3.interpreter.PromptAsyncIOInterpreter
+import scalaz_experiments.free_monad.candy3.interpreter.actor.{ActorMachineInterpreter, SystemInitializer}
+import scalaz_experiments.free_monad.candy3.interpreter.actor.SystemInitializer.{Setup, SystemContext}
 import scalaz_experiments.free_monad.candy3.pure.{CliProgram, MachineState}
 import scalaz_experiments.free_monad.candy3.pure.CliProgram.{CandyMachine, Program}
 import scalaz_experiments.free_monad.candy3.pure.Request.CreateMachine
