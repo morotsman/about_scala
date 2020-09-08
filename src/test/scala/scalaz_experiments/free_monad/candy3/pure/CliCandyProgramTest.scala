@@ -70,6 +70,10 @@ class CliCandyProgramTest extends AnyFlatSpec {
     Right("Error when handling request: No candies left")
   )
 
+  val goodbye = List(
+    Right("Goodbye, hope to see you again soon!")
+  )
+
   val locked = true
   val unlocked = false
 
@@ -82,7 +86,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
-    val expectedOutput = welcome ++ help ++ quit
+    val expectedOutput = welcome ++ help ++ quit ++ goodbye
     assert(actualOutput == expectedOutput)
 
     val expectedState = Right(initialMachine)
@@ -96,7 +100,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
-    val expectedOutput = welcome ++ help ++ coinDisposed ++ quit
+    val expectedOutput = welcome ++ help ++ coinDisposed ++ quit ++ goodbye
     assert(actualOutput == expectedOutput)
 
     val expectedState = Right(initialMachine.copy(
@@ -113,7 +117,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
-    val expectedOutput = welcome ++ help ++ coinDisposed ++ turn ++ quit
+    val expectedOutput = welcome ++ help ++ coinDisposed ++ turn ++ quit ++ goodbye
     assert(actualOutput == expectedOutput)
 
     val expectedState = Right(initialMachine.copy(
@@ -131,7 +135,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
-    val expectedOutput = welcome ++ help ++ coinDisposed ++ coinRejected ++ quit
+    val expectedOutput = welcome ++ help ++ coinDisposed ++ coinRejected ++ quit ++ goodbye
     assert(actualOutput == expectedOutput)
 
     val expectedState = Right(initialMachine.copy(
@@ -148,7 +152,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
-    val expectedOutput = welcome ++ help ++ coinDisposed ++ coinRejected ++ turn ++ quit
+    val expectedOutput = welcome ++ help ++ coinDisposed ++ coinRejected ++ turn ++ quit ++ goodbye
     assert(actualOutput == expectedOutput)
 
     val expectedState = Right(initialMachine.copy(
@@ -166,7 +170,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
-    val expectedOutput = welcome ++ help ++ turnRejected ++ quit
+    val expectedOutput = welcome ++ help ++ turnRejected ++ quit ++ goodbye
     assert(actualOutput == expectedOutput)
 
     assert(actualState == Right(initialMachine))
@@ -179,7 +183,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
-    val expectedOutput = welcome ++ help ++ showHelp ++ quit
+    val expectedOutput = welcome ++ help ++ showHelp ++ quit ++ goodbye
     assert(actualOutput == expectedOutput)
 
     assert(actualState == Right(initialMachine))
@@ -192,7 +196,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
-    val expectedOutput = welcome ++ help ++ currentState ++ quit
+    val expectedOutput = welcome ++ help ++ currentState ++ quit ++ goodbye
     assert(actualOutput == expectedOutput)
 
     assert(actualState == Right(initialMachine))
@@ -205,7 +209,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
-    val expectedOutput = welcome ++ help ++ invalidCommand ++ quit
+    val expectedOutput = welcome ++ help ++ invalidCommand ++ quit ++ goodbye
     assert(actualOutput == expectedOutput)
 
     assert(actualState == Right(initialMachine))
@@ -219,7 +223,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
-    val expectedOutput = welcome ++ help ++ noCandiesLeft ++ quit
+    val expectedOutput = welcome ++ help ++ noCandiesLeft ++ quit ++ goodbye
     assert(actualOutput == expectedOutput)
 
     assert(actualState == Right(initialMachine))

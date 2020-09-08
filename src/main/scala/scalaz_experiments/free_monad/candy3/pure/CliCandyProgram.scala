@@ -10,10 +10,14 @@ trait CliCandyProgram extends Program {
   def cliProgram(eventHandler: Request => Program[MachineState])(implicit I: IO[CandyMachine]): Program[Unit] = {
 
     def main(): Program[Unit] = (for {
-      _ <- write("Welcome to the candy machine")
+      _ <- welcome
       _ <- showCommands
       _ <- doWhileM(processInput)(input => input != QuitRequest())
+      _ <- goodbye
     } yield ())
+
+    def welcome: Program[Unit] =
+      write("Welcome to the candy machine")
 
     def showCommands: Program[Unit] = for {
       _ <- write("Available commands")
@@ -91,6 +95,9 @@ trait CliCandyProgram extends Program {
     def read[A](): Program[A] = EitherT(I.read[A]())
 
     def write[A](s: A): Program[Unit] = EitherT(I.write(s))
+
+    def goodbye: Program[Unit] =
+      write("Goodbye, hope to see you again soon!")
 
     main()
   }
