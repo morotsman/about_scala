@@ -5,36 +5,19 @@ import cats.free.Free
 import scalaz_experiments.free_monad.candy3.pure.Request._
 import scalaz_experiments.free_monad.candy3.pure.algebra.{IO, IOA, Machine, MachineOp}
 
-object Request {
 
-  trait Request
 
-  trait CliRequest extends Request
-
-  case class HelpRequest() extends CliRequest
-
-  case class QuitRequest() extends CliRequest
-
-  trait MachineRequest extends Request
-
-  case class CreateMachine(m: MachineState) extends MachineRequest
-
-  case class GetMachineState(id: Long) extends MachineRequest
-
-  case class InsertCoin(id: Long) extends MachineRequest
-
-  case class Turn(id: Long) extends MachineRequest
-
-}
-
-object CandyProgram {
-  type CandyMachine[A] = EitherK[MachineOp, IOA, A]
+trait Program {
+  type CandyMachine[A]
 
   type FreeProgram[A] = Free[CandyMachine, A]
 
   type Program[A] = EitherT[FreeProgram, Throwable, A]
+}
 
-  def cliProgram(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[Unit] = {
+trait CliCandyProgram extends Program {
+
+  def cliProgram(eventHandler: Request => Program[MachineState])(implicit I: IO[CandyMachine]): Program[Unit] = {
 
     def main(): Program[Unit] = (for {
       _ <- write("Welcome to the candy machine")
@@ -80,7 +63,7 @@ object CandyProgram {
       else
         Left(new IllegalArgumentException(s"Invalid request: $s"))
 
-      pureProgramFromEither(result)
+      pure(result)
     }
 
     def handleInvalidRequest(e: Throwable): Program[Request] = for {
@@ -92,29 +75,26 @@ object CandyProgram {
       case QuitRequest() => noop
       case HelpRequest() => showCommands
       case CreateMachine(_) => for {
-        m <- machineProgram(request)
+        _ <- eventHandler(request)
       } yield ()
       case GetMachineState(_) => for {
-        m <- machineProgram(request)
+        m <- eventHandler(request)
         _ <- write(m.toString)
       } yield ()
       case InsertCoin(_) => for {
-        m <- machineProgram(request)
+        _ <- eventHandler(request)
         _ <- write("Coin disposed, turn to get your candy!")
       } yield ()
       case Turn(_) => for {
-        m <- machineProgram(request)
+        _ <- eventHandler(request)
         _ <- write("Here is your candy!")
       } yield ()
     }).recoverWith(e => write(s"Error when handling request: ${e.getMessage}"))
 
-    def noop: Program[Unit] = pureProgram(())
+    def noop: Program[Unit] = pure(Right(()))
 
-    def pureProgram[A](a: A): Program[A] = pureProgramFromEither(Right(a))
-
-    def pureProgramFromEither[A](v: Either[Throwable, A]): Program[A] = {
+    def pure[A](v: Either[Throwable, A]): Program[A] = {
       def pureFreeProgram[A](v: A): FreeProgram[A] = Free.pure[CandyMachine, A](v)
-
       EitherT(pureFreeProgram(v))
     }
 
@@ -124,45 +104,10 @@ object CandyProgram {
 
     main()
   }
+}
 
-  def machineProgram(request: Request)(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[MachineState] = {
-    import D._
-    import I._
+object CliProgram extends CliCandyProgram with RequestHandlerProgram {
+  type CandyMachine[A] = EitherK[MachineOp, IOA, A]
 
-    sealed trait Input
-
-    case object Coin extends Input
-
-    case object Turn extends Input
-
-    def applyRule(input: Input)(machine: MachineState): Either[Throwable, MachineState] = input match {
-      case Coin =>
-        if (machine.candies == 0) {
-          Left(new IllegalStateException("No candies left"))
-        } else if (machine.locked) {
-          Right(machine.copy(locked = false, coins = machine.coins + 1))
-        } else {
-          Left(new IllegalStateException("A coin has already been disposed"))
-        }
-      case Turn =>
-        if (machine.candies == 0) {
-          Left(new IllegalStateException("No candies left"))
-        } else if (!machine.locked) {
-          Right(machine.copy(locked = true, candies = machine.candies - 1))
-        } else {
-          Left(new IllegalStateException("No coin has been disposed"))
-        }
-    }
-
-    val result = for {
-      response <- request match {
-        case CreateMachine(m) => initialState(m)
-        case GetMachineState(id) => currentState(id)
-        case InsertCoin(id) => updateState(id, applyRule(Coin))
-        case Request.Turn(id) => updateState(id, applyRule(Turn))
-      }
-    } yield response
-
-    EitherT(result)
-  }
+  def cliProgram(implicit I: IO[CandyMachine], D: Machine[CandyMachine]): Program[Unit] = cliProgram(requestHandler)
 }

@@ -9,8 +9,8 @@ import cats.implicits._
 import scalaz_experiments.free_monad.candy3.Types.ProgramResult
 import scalaz_experiments.free_monad.candy3.interpreter.{ActorMachineInterpreter, PromptAsyncIOInterpreter, SystemInitializer}
 import scalaz_experiments.free_monad.candy3.interpreter.SystemInitializer.{Setup, SystemContext}
-import scalaz_experiments.free_monad.candy3.pure.{CandyProgram, MachineState}
-import scalaz_experiments.free_monad.candy3.pure.CandyProgram.{CandyMachine, Program}
+import scalaz_experiments.free_monad.candy3.pure.{CliProgram, MachineState}
+import scalaz_experiments.free_monad.candy3.pure.CliProgram.{CandyMachine, Program}
 import scalaz_experiments.free_monad.candy3.pure.Request.CreateMachine
 import scalaz_experiments.free_monad.candy3.server.CandyServer.system
 
@@ -40,14 +40,14 @@ object Cli {
   def runProgram[A](interpreter: CandyMachine ~> ProgramResult, initialMachine: MachineState) = {
     val program = for {
       _ <- createMachine(initialMachine)
-      _ <- CandyProgram.cliProgram
+      _ <- CliProgram.cliProgram
     } yield ()
 
     program.value.foldMap(interpreter)
   }
 
   private def createMachine(initialMachine: MachineState): Program[MachineState] =
-    CandyProgram.machineProgram(CreateMachine(initialMachine))
+    CliProgram.requestHandler(CreateMachine(initialMachine))
 
   private def setupActorSystem(): Future[SystemContext] = system.ask((ref: ActorRef[SystemContext]) => Setup(ref))
 

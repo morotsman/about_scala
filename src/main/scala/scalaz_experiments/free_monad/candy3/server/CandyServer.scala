@@ -10,11 +10,11 @@ import akka.util.Timeout
 import cats._
 import cats.implicits._
 import scalaz_experiments.free_monad.candy3.Types.ProgramResult
-import scalaz_experiments.free_monad.candy3.interpreter.{ActorMachineInterpreter, NoopAsyncIOInterpreter, SystemInitializer}
-import scalaz_experiments.free_monad.candy3.pure.CandyProgram.CandyMachine
+import scalaz_experiments.free_monad.candy3.interpreter.{ActorMachineInterpreter, SystemInitializer}
 import scalaz_experiments.free_monad.candy3.pure.Request._
 import scalaz_experiments.free_monad.candy3.pure._
 import scalaz_experiments.free_monad.candy3.interpreter.SystemInitializer.{Setup, SystemContext}
+import scalaz_experiments.free_monad.candy3.pure.algebra.MachineOp
 import spray.json._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,7 +35,7 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val errorFormat = jsonFormat1(Error)
 }
 
-class CandyServer(val interpreter: CandyMachine ~> ProgramResult) extends Directives with JsonSupport {
+class CandyServer(val interpreter: MachineOp ~> ProgramResult) extends Directives with JsonSupport {
   val route =
     concat(
       post {
@@ -91,7 +91,7 @@ class CandyServer(val interpreter: CandyMachine ~> ProgramResult) extends Direct
   }
 
   private def handler(r: Request): Future[Either[Throwable, MachineState]] =
-    CandyProgram.machineProgram(r).value.foldMap(interpreter)
+    RequestHandler.requestHandler(r).value.foldMap(interpreter)
 
 }
 
@@ -106,10 +106,10 @@ object CandyServer {
   def main(args: Array[String]): Unit = {
     def setupActorSystem(): Future[SystemContext] = system.ask((ref: ActorRef[SystemContext]) => Setup(ref))
 
-    def createInterpreter(context: SystemContext) =
-      ActorMachineInterpreter.actorMachineInterpreter(context.machineActor) or NoopAsyncIOInterpreter
+    def createInterpreter(context: SystemContext): MachineOp ~> ProgramResult =
+      ActorMachineInterpreter.actorMachineInterpreter(context.machineActor)
 
-    def bindingFuture(interpreter: CandyMachine ~> ProgramResult) = Http().newServerAt("localhost", 8090).bind(new CandyServer(interpreter).route)
+    def bindingFuture(interpreter: MachineOp ~> ProgramResult) = Http().newServerAt("localhost", 8090).bind(new CandyServer(interpreter).route)
 
     val server = for {
       interpreter <- setupActorSystem().map(createInterpreter)

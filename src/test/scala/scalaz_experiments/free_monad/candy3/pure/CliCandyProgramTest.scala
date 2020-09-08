@@ -78,7 +78,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
   "A User" should "be able to quit" in {
     val state = InternalState[String](List(Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
-    val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val result = CliProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
@@ -92,7 +92,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
   "A User" should "be able to unlock" in {
     val state = InternalState[String](List(Right("c"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
-    val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val result = CliProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
@@ -109,7 +109,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
   "A User" should "be able to turn if a candy has been disposed" in {
     val state = InternalState[String](List(Right("c"), Right("t"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
-    val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val result = CliProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
@@ -127,7 +127,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
   "A User" should "not be able to dispose a coin if the machine is unlocked" in {
     val state = InternalState[String](List(Right("c"), Right("c"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
-    val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val result = CliProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
@@ -144,7 +144,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
   "A CandyProgram" should "accept a turn after a faulty input" in {
     val state = InternalState[String](List(Right("c"), Right("c"), Right("t"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
-    val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val result = CliProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
@@ -162,7 +162,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
   "A CandyProgram" should "reject a turn if no coin has been disposed" in {
     val state = InternalState[String](List(Right("t"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
-    val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val result = CliProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
@@ -175,7 +175,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
   "A CandyProgram" should "be able to help" in {
     val state = InternalState[String](List(Right("h"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
-    val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val result = CliProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
@@ -188,7 +188,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
   "A CandyProgram" should "be able to show the current state" in {
     val state = InternalState[String](List(Right("s"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
-    val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val result = CliProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
@@ -201,7 +201,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
   "A CandyProgram" should "reject an invalid command" in {
     val state = InternalState[String](List(Right("j"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
-    val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val result = CliProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 
@@ -215,7 +215,7 @@ class CliCandyProgramTest extends AnyFlatSpec {
     val initialMachine = MachineState(Some(0), locked, 0, 20)
     val state = InternalState[String](List(Right("c"), Right("q")), List[Either[Exception, String]](), Right(initialMachine): Either[Throwable, MachineState])
 
-    val result = CandyProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val result = CliProgram.cliProgram.value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._1.out.reverse
     val actualState = result._1.machine
 

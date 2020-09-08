@@ -13,7 +13,6 @@ import org.scalatest.matchers.should.Matchers
 import scalaz_experiments.free_monad.candy3.Types.ProgramResult
 import scalaz_experiments.free_monad.candy3.interpreter.SystemInitializer.{Setup, SystemContext}
 import scalaz_experiments.free_monad.candy3.interpreter.{ActorMachineInterpreter, NoopAsyncIOInterpreter, StateIOInterpreter, StateMachineInterpreter, SystemInitializer}
-import scalaz_experiments.free_monad.candy3.pure.CandyProgram.CandyMachine
 import scalaz_experiments.free_monad.candy3.pure.MachineState
 import spray.json.DefaultJsonProtocol
 
@@ -38,7 +37,7 @@ class CandyServerTest extends AnyFlatSpec with Matchers with ScalatestRouteTest 
     def setupActorSystem(): Future[SystemContext] = mySystem.ask((ref: ActorRef[SystemContext]) => Setup(ref))
 
     def createInterpreter(context: SystemContext) =
-      ActorMachineInterpreter.actorMachineInterpreter(context.machineActor) or NoopAsyncIOInterpreter
+      ActorMachineInterpreter.actorMachineInterpreter(context.machineActor)
 
     val futureInterpreter = setupActorSystem().map(createInterpreter)
 

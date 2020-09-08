@@ -18,7 +18,7 @@ class MachineProgramTest extends AnyFlatSpec {
   "A machineProgram" should "give back the state if asked" in {
     val state = InternalState[String](List(), List(), Right(initialMachine): Either[Throwable, MachineState])
 
-    val result = CandyProgram.machineProgram(GetMachineState(0L)).value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val result = CliProgram.requestHandler(GetMachineState(0L)).value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._2
     val actualState = result._1.machine
 
@@ -29,7 +29,7 @@ class MachineProgramTest extends AnyFlatSpec {
   "A machineProgram" should "accept a coin" in {
     val state = InternalState[String](List(), List(), Right(initialMachine): Either[Throwable, MachineState])
 
-    val result = CandyProgram.machineProgram(InsertCoin(0L)).value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val result = CliProgram.requestHandler(InsertCoin(0L)).value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._2
     val actualState = result._1.machine
 
@@ -45,7 +45,7 @@ class MachineProgramTest extends AnyFlatSpec {
   "A machineProgram" should "reject a turn if no coin has been disposed" in {
     val state = InternalState[String](List(), List(), Right(initialMachine): Either[Throwable, MachineState])
 
-    val result = CandyProgram.machineProgram(Turn(0L)).value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val result = CliProgram.requestHandler(Turn(0L)).value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._2
     val actualState = result._1.machine
 
@@ -56,7 +56,7 @@ class MachineProgramTest extends AnyFlatSpec {
   "A machineProgram" should "accept a turn if a coin has been disposed" in {
     val state = InternalState[String](List(), List(), Right(MachineState(Some(0), unlocked, 20, 1)): Either[Throwable, MachineState])
 
-    val result = CandyProgram.machineProgram(Turn(0L)).value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val result = CliProgram.requestHandler(Turn(0L)).value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._2
     val actualState = result._1.machine
 
@@ -68,7 +68,7 @@ class MachineProgramTest extends AnyFlatSpec {
   "A machineProgram" should "be able to create a new machine" in {
     val state = InternalState[String](List(), List(), Right(MachineState(Some(0), unlocked, 20, 1)): Either[Throwable, MachineState])
 
-    val result = CandyProgram.machineProgram(CreateMachine(MachineState(Some(1), locked, 40, 1))).value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
+    val result = CliProgram.requestHandler(CreateMachine(MachineState(Some(1), locked, 40, 1))).value.foldMap(interpreter).run(state.asInstanceOf[InternalState[Any]]).value
     val actualOutput = result._2
     val actualState = result._1.machine
 
