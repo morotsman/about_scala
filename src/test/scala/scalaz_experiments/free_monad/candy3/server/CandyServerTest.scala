@@ -2,17 +2,14 @@ package scalaz_experiments.free_monad.candy3.server
 
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.actor.typed.{ActorRef, ActorSystem}
-import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.util.Timeout
-import cats.~>
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import scalaz_experiments.free_monad.candy3.Types.ProgramResult
 import scalaz_experiments.free_monad.candy3.interpreter.SystemInitializer.{Setup, SystemContext}
-import scalaz_experiments.free_monad.candy3.interpreter.{ActorMachineInterpreter, NoopAsyncIOInterpreter, StateIOInterpreter, StateMachineInterpreter, SystemInitializer}
+import scalaz_experiments.free_monad.candy3.interpreter.{ActorMachineInterpreter, SystemInitializer}
 import scalaz_experiments.free_monad.candy3.pure.MachineState
 import spray.json.DefaultJsonProtocol
 
