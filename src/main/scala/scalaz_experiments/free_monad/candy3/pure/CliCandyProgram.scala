@@ -9,12 +9,12 @@ trait CliCandyProgram extends Program {
 
   def cliProgram(eventHandler: Request => Program[MachineState])(implicit I: IO[CandyMachine]): Program[Unit] = {
 
-    def main(): Program[Unit] = (for {
+    def main(): Program[Unit] = for {
       _ <- welcome
       _ <- showCommands
       _ <- doWhileM(processInput)(input => input != QuitRequest())
       _ <- goodbye
-    } yield ())
+    } yield ()
 
     def welcome: Program[Unit] =
       write("Welcome to the candy machine")
