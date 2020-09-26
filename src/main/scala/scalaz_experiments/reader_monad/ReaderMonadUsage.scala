@@ -76,56 +76,45 @@ object ReaderMonadUsage {
   private def p(children: List[HTML]): HTML =
     "<p>" + children.mkString("") + "</p>"
 
-  def view(): Reader[Context, HTML] = for (
-    p <- page()
+  def view: Reader[Context, HTML] = for (
+    p <- page
   ) yield div(List(p))
 
-  private def page() = for (
+  private def page = for (
     c <- content
-  ) yield div(List(
-    topNav(),
-    c
-  ))
+  ) yield div(List(topNav, c))
 
-  private def topNav(): HTML =
-    h1(
-      List("OurSite.com")
-    )
+  private def topNav: HTML =
+    h1(List("OurSite.com"))
 
   private def content = for (
     context <- ask[Context];
-    r <- right()
-  ) yield div(List(
-    h1(List("Custom content for " + context.email)),
-    left(),
-    r
-  ))
+    r <- right
+  ) yield div(List(h1(List("Custom content for " + context.email)), left, r))
 
   private def ask[R]: Reader[R, R] = Reader(r => r)
 
-  private def left(): HTML =
+  private def left: HTML =
     p(List("This is the left side"))
 
-  private def right() = for (
-    a <- article()
+  private def right = for (
+    a <- article
   ) yield div(List(a))
 
-  private def article() = for (
-    w <- widget()
-  ) yield div(List(
-    p(List("This is an article")),
-    w
-  ))
+  private def article = for (
+    w <- widget
+  ) yield div(List(p(List("This is an article")), w))
 
-  private def widget() = for (
+  private def widget = for (
     context <- ask[Context]
-  ) yield div(List(
-    p(List("Hey " + context.email + ", we've got a great offer for you!"))
-  ))
+  ) yield div(List(p(List("Hey " + context.email + ", we've got a great offer for you!"))))
 
   def main(args: Array[String]): Unit = {
-    val result = view().run(Context("leopold.niklas@gmail.com"))
+    val widgetReader: Reader[Context, HTML] = widget;
+    val widgetResult = widgetReader.run(Context("leopold.niklas@gmail.com"))
+    assert(widgetResult == "<div><p>Hey leopold.niklas@gmail.com, we've got a great offer for you!</p></div>")
 
+    val result = view.run(Context("leopold.niklas@gmail.com"))
     assert(result == "<div><div><h1>OurSite.com</h1><div><h1>Custom content for leopold.niklas@gmail.com</h1><p>This is the left side</p><div><div><p>This is an article</p><div><p>Hey leopold.niklas@gmail.com, we've got a great offer for you!</p></div></div></div></div></div></div>")
   }
 
