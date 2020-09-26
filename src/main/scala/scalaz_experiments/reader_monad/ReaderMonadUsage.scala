@@ -9,8 +9,6 @@ import cats.implicits._
 object WithoutReaderMonad {
   type HTML = String
 
-  case class Context(email: String)
-
   private def div(children: List[HTML]): HTML =
     "<div>" + children.mkString("") + "</div>"
 
