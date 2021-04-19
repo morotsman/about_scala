@@ -1,4 +1,4 @@
-package cats.scala_with_cats.chapter2
+package try_cats.scala_with_cats.chapter2
 
 import cats.Monoid
 import cats.instances.string._ // for Monoid

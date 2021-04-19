@@ -1,10 +1,10 @@
-package cats.scala_with_cats.chapter4
+package try_cats.scala_with_cats.chapter4
 
 import cats.{Id, Monad}
 import cats.data.{Reader, WriterT}
 import cats.instances.option._
 import cats.instances.list._
-import cats.scala_with_cats.chapter4.HackingOnReader.DbReader
+import HackingOnReader.DbReader
 
 import scala.annotation.tailrec // for Monad
 

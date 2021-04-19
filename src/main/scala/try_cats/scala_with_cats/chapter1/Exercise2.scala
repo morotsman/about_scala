@@ -1,4 +1,4 @@
-package cats.scala_with_cats.chapter1
+package try_cats.scala_with_cats.chapter1
 
 import cats._
 import cats.implicits._

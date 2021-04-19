@@ -1,4 +1,4 @@
-package cats.scala_with_cats.chapter3
+package try_cats.scala_with_cats.chapter3
 
 object FunctionExample {
 

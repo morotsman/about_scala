@@ -1,4 +1,4 @@
-package cats.scala_with_cats.chapter1
+package try_cats.scala_with_cats.chapter1
 
 // Define a very simple JSON AST
 sealed trait Json

@@ -1,4 +1,4 @@
-package cats.scala_with_cats.chapter5
+package try_cats.scala_with_cats.chapter5
 
 import cats.data.{EitherT, OptionT}
 import cats._
@@ -122,8 +122,8 @@ object UsagePattern {
   def addAll(a: String, b: String, c: String): Logged[Option[Int]] = {
     import cats.data.OptionT
 
-    val result = for {
-      a <- OptionT(parseNumber(a))
+    val result: OptionT[Logged, Int] = for {
+      a: Int <- OptionT(parseNumber(a))
       b <- OptionT(parseNumber(b))
       c <- OptionT(parseNumber(c))
     } yield a + b + c

@@ -1,4 +1,4 @@
-package cats.scala_with_cats.chapter1
+package try_cats.scala_with_cats.chapter1
 
 object Exercise1 {
 
@@ -7,9 +7,7 @@ object Exercise1 {
   }
 
   object PrintableInstances {
-    implicit val stringPrintable = new Printable[String] {
-      override def format(a: String): String = a
-    }
+    implicit val stringPrintable: Printable[String] = (a: String) => a
 
     implicit val intPrintable = new Printable[Int] {
       override def format(a: Int): String = a.toString
